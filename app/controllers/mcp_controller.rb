@@ -46,13 +46,9 @@ class McpController < ApplicationController
       successful_calls: ToolCall.successful.count,
       failed_calls: ToolCall.failed.count,
       success_rate: ToolCall.count > 0 ? (ToolCall.successful.count.to_f / ToolCall.count * 100).round(2) : 0,
-      unique_tools: ToolCall.distinct.count(:tool_name),
-      unique_purls: ToolCall.where.not(purl: nil).distinct.count(:purl),
-      unique_ips: ToolCall.where.not(ip_address: nil).distinct.count(:ip_address),
-      calls_today: ToolCall.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count,
-      failed_today: ToolCall.failed.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count,
-      calls_this_week: ToolCall.where(created_at: 1.week.ago.beginning_of_day..Time.current).count,
-      failed_this_week: ToolCall.failed.where(created_at: 1.week.ago.beginning_of_day..Time.current).count,
+      top_tools: ToolCall.group(:tool_name).count.sort_by(&:second).reverse.first(10),
+      top_purls: ToolCall.where.not(purl: nil).group(:purl).count.sort_by(&:second).reverse.first(10),
+      top_ips: ToolCall.where.not(ip_address: nil).group(:ip_address).count.sort_by(&:second).reverse.first(10),
       top_error_types: ToolCall.failed.group(:error_type).count.sort_by(&:second).reverse.first(10)
     }
 

@@ -7,8 +7,11 @@
     .container { max-width: 1200px; margin: 0 auto; }
     .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-decoration: none; color: inherit; display: block; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-decoration: none; color: inherit; }
     .stat-card.error { background: #fef2f2; border-left: 4px solid #ef4444; }
+    .stat-card.clickable { cursor: pointer; }
+    .stat-card.non-clickable { cursor: default; }
     .stat-number { font-size: 2em; font-weight: bold; color: #2563eb; }
     .stat-number.error { color: #ef4444; }
     .stat-label { color: #666; font-size: 0.9em; margin-top: 5px; }
@@ -38,41 +41,53 @@
     </div>
 
     <div class="stats">
-      <div class="stat-card">
+      <div class="stat-card non-clickable">
         <div class="stat-number"><%= @stats[:total_calls] %></div>
         <div class="stat-label">Total Calls</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card non-clickable">
         <div class="stat-number"><%= @stats[:successful_calls] %></div>
         <div class="stat-label">Successful</div>
       </div>
-      <div class="stat-card error">
+      <div class="stat-card error non-clickable">
         <div class="stat-number error"><%= @stats[:failed_calls] %></div>
         <div class="stat-label">Failed</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card non-clickable">
         <div class="stat-number"><%= @stats[:success_rate] %>%</div>
         <div class="stat-label">Success Rate</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:unique_tools] %></div>
-        <div class="stat-label">Unique Tools</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: #333; font-size: 18px;">🔧 Top Tools</h3>
+        <% @stats[:top_tools].each do |tool_name, count| %>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+            <span style="font-family: monospace; font-size: 13px; color: #2563eb;"><%= tool_name %></span>
+            <span style="font-weight: bold; color: #333;"><%= count %></span>
+          </div>
+        <% end %>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:unique_purls] %></div>
-        <div class="stat-label">Unique PURLs</div>
+
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: #333; font-size: 18px;">📦 Top PURLs</h3>
+        <% @stats[:top_purls].each do |purl, count| %>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+            <span style="font-family: monospace; font-size: 12px; color: #059669; word-break: break-all;"><%= truncate(purl, length: 35) %></span>
+            <span style="font-weight: bold; color: #333;"><%= count %></span>
+          </div>
+        <% end %>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:unique_ips] %></div>
-        <div class="stat-label">Unique IPs</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:calls_today] %></div>
-        <div class="stat-label">Today</div>
-      </div>
-      <div class="stat-card error">
-        <div class="stat-number error"><%= @stats[:failed_today] %></div>
-        <div class="stat-label">Failed Today</div>
+
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: #333; font-size: 18px;">🌐 Top IP Addresses</h3>
+        <% @stats[:top_ips].each do |ip, count| %>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+            <span style="font-family: monospace; font-size: 13px; color: #7c3aed;"><%= ip %></span>
+            <span style="font-weight: bold; color: #333;"><%= count %></span>
+          </div>
+        <% end %>
       </div>
     </div>
 
