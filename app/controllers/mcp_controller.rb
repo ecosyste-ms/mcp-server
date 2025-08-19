@@ -7,7 +7,7 @@ class McpController < ApplicationController
       Rails.logger.info "MCP Request: #{request_body}"
       
       mcp_server = SimpleMcpServer.new
-      response_data = mcp_server.handle_request(request_body)
+      response_data = mcp_server.handle_request(request_body, user_agent: request.headers['User-Agent'], request_id: request.request_id, ip_address: request.remote_ip)
       Rails.logger.info "MCP Response: #{response_data}"
       
       render json: response_data
@@ -27,35 +27,33 @@ class McpController < ApplicationController
   end
 
   def health
-    # Simple health check without creating the full MCP server
+    mcp_server = SimpleMcpServer.new
+    tools = mcp_server.tools_list
+    
     render json: {
       status: "healthy",
       server: "Ecosyste.ms MCP Server",
       version: "1.0.0",
-      tools: [
-        "get_package_name",
-        "get_authors", 
-        "get_version",
-        "get_description",
-        "get_license",
-        "get_repository",
-        "analyze_governance",
-        "check_lifecycle",
-        "assess_importance",
-        "get_maintainer_activity",
-        "get_contributor_activity",
-        "find_audits",
-        "check_security_policy",
-        "assess_tampering_risk",
-        "assess_vulnerability_risk", 
-        "assess_sustainability_risk",
-        "generate_risk_analysis",
-        "suggest_action",
-        "analyze_package",
-        "lookup_vulnerabilities",
-        "get_unpatched_vulnerabilities",
-        "analyze_security_posture"
-      ]
+      tools_count: tools.length,
+      message: "#{tools.length} MCP tools available for package ecosystem analysis",
+      tools: tools.map { |tool| { name: tool[:name], description: tool[:description] } }
     }
+  end
+
+  def admin
+    @tool_calls = ToolCall.order(created_at: :desc).limit(1000)
+    @stats = {
+      total_calls: ToolCall.count,
+      unique_tools: ToolCall.distinct.count(:tool_name),
+      unique_purls: ToolCall.where.not(purl: nil).distinct.count(:purl),
+      unique_ips: ToolCall.where.not(ip_address: nil).distinct.count(:ip_address),
+      calls_today: ToolCall.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count,
+      calls_this_week: ToolCall.where(created_at: 1.week.ago.beginning_of_day..Time.current).count
+    }
+    
+    respond_to do |format|
+      format.html
+      format.json { render json: { tool_calls: @tool_calls, stats: @stats } }
+    end
   end
 end

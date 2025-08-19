@@ -7,7 +7,7 @@ class SimpleMcpServer
     @service = PackageInfoService.new
   end
 
-  def handle_request(request_body)
+  def handle_request(request_body, user_agent: nil, request_id: nil, ip_address: nil)
     request = JSON.parse(request_body, symbolize_names: true)
     
     case request[:method]
@@ -18,7 +18,7 @@ class SimpleMcpServer
     when "tools/list"
       handle_tools_list(request)
     when "tools/call"
-      handle_tool_call(request)
+      handle_tool_call(request, user_agent: user_agent, request_id: request_id, ip_address: ip_address)
     else
       {
         jsonrpc: "2.0",
@@ -50,9 +50,8 @@ class SimpleMcpServer
     }
   end
 
-  private
-
-  def handle_initialize(request)
+  def tools_list
+    [
     {
       jsonrpc: "2.0",
       id: request[:id],
@@ -77,8 +76,8 @@ class SimpleMcpServer
     }
   end
 
-  def handle_tools_list(request)
-    tools = [
+  def tools_list
+    [
       # Package Metadata Tools
       {
         name: "get_package_basic_info",
@@ -192,6 +191,65 @@ class SimpleMcpServer
           required: ["purl"]
         }
       },
+      {
+        name: "get_package_versions",
+        description: "Get complete list of all versions for a package",
+        inputSchema: {
+          type: "object",
+          properties: {
+            purl: { type: "string", description: "Package URL (e.g., pkg:cargo/rand)" },
+            page: { type: "number", description: "Page number (default: 1)" },
+            per_page: { type: "number", description: "Items per page (default: 30, max: 100)" }
+          },
+          required: ["purl"]
+        }
+      },
+      {
+        name: "get_package_version_numbers",
+        description: "Get simple list of version numbers for a package",
+        inputSchema: {
+          type: "object",
+          properties: {
+            purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
+          },
+          required: ["purl"]
+        }
+      },
+      {
+        name: "get_related_packages",
+        description: "Get packages related to this package (dependencies, dependents, similar packages)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            purl: { type: "string", description: "Package URL (e.g., pkg:npm/react)" },
+            page: { type: "number", description: "Page number (default: 1)" }
+          },
+          required: ["purl"]
+        }
+      },
+      {
+        name: "get_dependent_packages",
+        description: "Get packages that depend on this package",
+        inputSchema: {
+          type: "object",
+          properties: {
+            purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" },
+            page: { type: "number", description: "Page number (default: 1)" }
+          },
+          required: ["purl"]
+        }
+      },
+      {
+        name: "get_package_maintainers",
+        description: "Get package maintainers list",
+        inputSchema: {
+          type: "object",
+          properties: {
+            purl: { type: "string", description: "Package URL (e.g., pkg:pypi/requests)" }
+          },
+          required: ["purl"]
+        }
+      },
       
       # Repository Analysis Tools
       {
@@ -200,7 +258,7 @@ class SimpleMcpServer
         inputSchema: {
           type: "object",
           properties: {
-            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" }
           },
           required: ["repo_url"]
         }
@@ -324,6 +382,65 @@ class SimpleMcpServer
           type: "object",
           properties: {
             repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+          },
+          required: ["repo_url"]
+        }
+      },
+      {
+        name: "get_repo_tags",
+        description: "Get repository tags using ecosyste.ms repos API",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" },
+            page: { type: "number", description: "Page number (default: 1)" },
+            per_page: { type: "number", description: "Items per page (default: 30)" }
+          },
+          required: ["repo_url"]
+        }
+      },
+      {
+        name: "get_repo_releases",
+        description: "Get repository releases using ecosyste.ms repos API",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" },
+            page: { type: "number", description: "Page number (default: 1)" },
+            per_page: { type: "number", description: "Items per page (default: 30)" }
+          },
+          required: ["repo_url"]
+        }
+      },
+      {
+        name: "get_repo_sbom",
+        description: "Get repository SBOM (Software Bill of Materials) using ecosyste.ms repos API",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+          },
+          required: ["repo_url"]
+        }
+      },
+      {
+        name: "get_repo_owner",
+        description: "Get repository owner information using ecosyste.ms repos API",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+          },
+          required: ["repo_url"]
+        }
+      },
+      {
+        name: "get_repo_scorecard",
+        description: "Get repository security scorecard using ecosyste.ms repos API",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" }
           },
           required: ["repo_url"]
         }
@@ -457,19 +574,34 @@ class SimpleMcpServer
         }
       }
     ]
+  end
 
+  def handle_tools_list(request)
     {
       jsonrpc: "2.0",
       id: request[:id],
       result: {
-        tools: tools
+        tools: tools_list
       }
     }
   end
 
-  def handle_tool_call(request)
+  def handle_tool_call(request, user_agent: nil, request_id: nil, ip_address: nil)
     tool_name = request.dig(:params, :name)
     arguments = request.dig(:params, :arguments) || {}
+    
+    # Extract PURL from arguments if present
+    purl = arguments[:purl] || arguments["purl"] || arguments[:repo_url] || arguments["repo_url"]
+    
+    # Log the tool call
+    ToolCall.log_call(
+      tool_name: tool_name,
+      arguments: arguments,
+      purl: purl,
+      user_agent: user_agent,
+      request_id: request_id,
+      ip_address: ip_address
+    )
     
     result = case tool_name
              # Package Metadata Tools
@@ -495,6 +627,16 @@ class SimpleMcpServer
                get_package_dependencies(arguments)
              when "get_version_urls"
                get_version_urls(arguments)
+             when "get_package_versions"
+               get_package_versions(arguments)
+             when "get_package_version_numbers"
+               get_package_version_numbers(arguments)
+             when "get_related_packages"
+               get_related_packages(arguments)
+             when "get_dependent_packages"
+               get_dependent_packages(arguments)
+             when "get_package_maintainers"
+               get_package_maintainers(arguments)
              
              # Repository Analysis Tools
              when "get_repo_basic_info"
@@ -521,6 +663,16 @@ class SimpleMcpServer
                get_repo_changelog(arguments)
              when "get_repo_repomix"
                get_repo_repomix(arguments)
+             when "get_repo_tags"
+               get_repo_tags(arguments)
+             when "get_repo_releases"
+               get_repo_releases(arguments)
+             when "get_repo_sbom"
+               get_repo_sbom(arguments)
+             when "get_repo_owner"
+               get_repo_owner(arguments)
+             when "get_repo_scorecard"
+               get_repo_scorecard(arguments)
              
              # Issue Tracking Tools
              when "get_issue_counts"
@@ -752,10 +904,179 @@ class SimpleMcpServer
     }
   end
 
+  def get_package_versions(args)
+    purl_string = args[:purl] || args["purl"]
+    page = args[:page] || args["page"] || 1
+    per_page = args[:per_page] || args["per_page"] || 30
+    
+    return { error: "PURL required" } unless purl_string
+    
+    # First, lookup the package to get the versions_url
+    package_response = @client.lookup_by_purl(purl_string)
+    return { error: "Package not found" } unless package_response
+    
+    versions_url = package_response["versions_url"]
+    return { error: "Versions URL not available for this package" } unless versions_url
+    
+    # Add pagination parameters to the versions_url
+    uri = URI(versions_url)
+    params = URI.decode_www_form(uri.query || "")
+    params << ["page", page.to_s]
+    params << ["per_page", per_page.to_s]
+    uri.query = URI.encode_www_form(params)
+    
+    # Fetch versions using the versions_url with pagination
+    versions_response = @client.fetch_external_api(uri.to_s)
+    
+    if versions_response && versions_response.is_a?(Array)
+      { 
+        versions: versions_response,
+        page: page,
+        per_page: per_page
+      }
+    else
+      { error: "Failed to retrieve versions list" }
+    end
+  end
+
+  def get_package_version_numbers(args)
+    purl_string = args[:purl] || args["purl"]
+    return { error: "PURL required" } unless purl_string
+    
+    # First, lookup the package to get registry info
+    package_response = @client.lookup_by_purl(purl_string)
+    return { error: "Package not found" } unless package_response
+    
+    registry_name = package_response.dig("registry", "name")
+    package_name = package_response["name"]
+    return { error: "Registry or package name not found" } unless registry_name && package_name
+    
+    # Use the version_numbers endpoint
+    version_numbers_url = "#{@client.packages_base_url}/registries/#{registry_name}/packages/#{CGI.escape(package_name)}/version_numbers"
+    
+    version_numbers_response = @client.fetch_external_api(version_numbers_url)
+    
+    if version_numbers_response && version_numbers_response.is_a?(Array)
+      { 
+        version_numbers: version_numbers_response
+      }
+    else
+      { error: "Failed to retrieve version numbers" }
+    end
+  end
+
+  def get_related_packages(args)
+    purl_string = args[:purl] || args["purl"]
+    page = args[:page] || args["page"] || 1
+    return { error: "PURL required" } unless purl_string
+    
+    # First, lookup the package to get registry info
+    package_response = @client.lookup_by_purl(purl_string)
+    return { error: "Package not found" } unless package_response
+    
+    registry_name = package_response.dig("registry", "name")
+    package_name = package_response["name"]
+    return { error: "Registry or package name not found" } unless registry_name && package_name
+    
+    # Use the related_packages endpoint with pagination
+    related_packages_url = "#{@client.packages_base_url}/registries/#{registry_name}/packages/#{CGI.escape(package_name)}/related_packages"
+    
+    # Add pagination parameters
+    uri = URI(related_packages_url)
+    params = URI.decode_www_form(uri.query || "")
+    params << ["page", page.to_s]
+    uri.query = URI.encode_www_form(params)
+    
+    related_packages_response = @client.fetch_external_api(uri.to_s)
+    
+    if related_packages_response && related_packages_response.is_a?(Array)
+      { 
+        related_packages: related_packages_response,
+        page: page
+      }
+    else
+      { error: "Failed to retrieve related packages" }
+    end
+  end
+
+  def get_dependent_packages(args)
+    purl_string = args[:purl] || args["purl"]
+    page = args[:page] || args["page"] || 1
+    return { error: "PURL required" } unless purl_string
+    
+    # First, lookup the package to get registry info
+    package_response = @client.lookup_by_purl(purl_string)
+    return { error: "Package not found" } unless package_response
+    
+    registry_name = package_response.dig("registry", "name")
+    package_name = package_response["name"]
+    return { error: "Registry or package name not found" } unless registry_name && package_name
+    
+    # Use the dependent_packages endpoint with pagination
+    dependent_packages_url = "#{@client.packages_base_url}/registries/#{registry_name}/packages/#{CGI.escape(package_name)}/dependent_packages"
+    
+    # Add pagination parameters
+    uri = URI(dependent_packages_url)
+    params = URI.decode_www_form(uri.query || "")
+    params << ["page", page.to_s]
+    uri.query = URI.encode_www_form(params)
+    
+    dependent_packages_response = @client.fetch_external_api(uri.to_s)
+    
+    if dependent_packages_response && dependent_packages_response.is_a?(Array)
+      { 
+        dependent_packages: dependent_packages_response,
+        page: page
+      }
+    else
+      { error: "Failed to retrieve dependent packages" }
+    end
+  end
+
+  def get_package_maintainers(args)
+    purl_string = args[:purl] || args["purl"]
+    return { error: "PURL required" } unless purl_string
+    
+    # Lookup the package to get maintainers from the main response
+    package_response = @client.lookup_by_purl(purl_string)
+    return { error: "Package not found" } unless package_response
+    
+    maintainers = package_response["maintainers"]
+    
+    { 
+      maintainers: maintainers || []
+    }
+  end
+
+  # Helper method to resolve repository URL from PURL or direct repo URL
+  def resolve_repository_url(args)
+    repo_url = args[:repo_url] || args["repo_url"]
+    return { error: "Repository URL or PURL required" } unless repo_url
+    
+    # Check if this looks like a PURL (starts with pkg:)
+    if repo_url.start_with?("pkg:")
+      # Look up the package to get repository_url
+      package_response = @client.lookup_by_purl(repo_url)
+      return { error: "Package not found" } unless package_response
+      
+      repository_url = package_response["repository_url"]
+      return { error: "No repository URL found for this package" } unless repository_url
+      
+      # Return the resolved repository URL
+      return { repository_url: repository_url }
+    else
+      # Direct repository URL provided
+      return { repository_url: repo_url }
+    end
+  end
+
   # Repository Analysis Tools
   def get_repo_basic_info(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse GitHub URL to get owner/repo
     if repo_url.include?("github.com")
@@ -781,8 +1102,11 @@ class SimpleMcpServer
   end
 
   def get_repo_activity(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -804,8 +1128,11 @@ class SimpleMcpServer
   end
 
   def get_repo_community(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -828,8 +1155,11 @@ class SimpleMcpServer
   end
 
   def get_repo_metadata(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -853,8 +1183,11 @@ class SimpleMcpServer
   end
 
   def get_repo_dependencies(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -874,8 +1207,11 @@ class SimpleMcpServer
   end
 
   def get_repo_urls(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -900,8 +1236,11 @@ class SimpleMcpServer
   end
 
   def get_repo_metafiles(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -925,8 +1264,11 @@ class SimpleMcpServer
   end
 
   def get_repo_files(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -963,11 +1305,14 @@ class SimpleMcpServer
   end
 
   def get_repo_file_contents(args)
-    repo_url = args[:repo_url] || args["repo_url"]
     file_path = args[:file_path] || args["file_path"]
-    
-    return { error: "Repository URL required" } unless repo_url
     return { error: "File path required" } unless file_path
+    
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -1012,8 +1357,11 @@ class SimpleMcpServer
   end
 
   def get_repo_readme(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -1055,9 +1403,13 @@ class SimpleMcpServer
   end
 
   def get_repo_changelog(args)
-    repo_url = args[:repo_url] || args["repo_url"]
     version = args[:version] || args["version"]
-    return { error: "Repository URL required" } unless repo_url
+    
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -1115,8 +1467,11 @@ class SimpleMcpServer
   end
 
   def get_repo_repomix(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     # Parse repository URL to extract host, owner, and repo
     if repo_url.include?("github.com")
@@ -1158,8 +1513,11 @@ class SimpleMcpServer
 
   # Issue Tracking Tools
   def get_issue_counts(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1182,8 +1540,11 @@ class SimpleMcpServer
   end
 
   def get_issue_timing(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1205,8 +1566,11 @@ class SimpleMcpServer
   end
 
   def get_maintainer_info(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1227,8 +1591,11 @@ class SimpleMcpServer
   end
 
   def get_contributor_counts(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1249,8 +1616,11 @@ class SimpleMcpServer
   end
 
   def get_past_year_activity(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1273,8 +1643,11 @@ class SimpleMcpServer
 
   # Commit Activity Tools
   def get_commit_overview(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1296,8 +1669,11 @@ class SimpleMcpServer
   end
 
   def get_committer_list(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1317,9 +1693,13 @@ class SimpleMcpServer
   end
 
   def get_top_committers(args)
-    repo_url = args[:repo_url] || args["repo_url"]
     limit = args[:limit] || args["limit"] || 10
-    return { error: "Repository URL required" } unless repo_url
+    
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
     
     if repo_url.include?("github.com")
       parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
@@ -1344,19 +1724,11 @@ class SimpleMcpServer
 
   # Vulnerability Tools
   def get_vulnerability_list(args)
-    # Parse the purl to get ecosystem and name
-    purl_obj = Purl::PackageURL.parse(args[:purl] || args["purl"])
-    ecosystem = case purl_obj.type
-                when "pypi" then "pypi"
-                when "npm" then "npm"
-                when "cargo" then "cargo"
-                when "gem" then "rubygems"
-                when "nuget" then "nuget"
-                when "maven" then "maven"
-                else purl_obj.type
-                end
+    purl_string = args[:purl] || args["purl"]
+    return { error: "PURL required" } unless purl_string
     
-    vulnerabilities = @client.vulnerabilities(ecosystem, purl_obj.name)
+    # Use the new PURL-based lookup endpoint
+    vulnerabilities = @client.vulnerabilities_by_purl(purl_string)
     
     if vulnerabilities && vulnerabilities.any?
       {
@@ -1379,19 +1751,11 @@ class SimpleMcpServer
   end
 
   def get_vulnerability_counts_by_severity(args)
-    # Parse the purl to get ecosystem and name
-    purl_obj = Purl::PackageURL.parse(args[:purl] || args["purl"])
-    ecosystem = case purl_obj.type
-                when "pypi" then "pypi"
-                when "npm" then "npm"
-                when "cargo" then "cargo"
-                when "gem" then "rubygems"
-                when "nuget" then "nuget"
-                when "maven" then "maven"
-                else purl_obj.type
-                end
+    purl_string = args[:purl] || args["purl"]
+    return { error: "PURL required" } unless purl_string
     
-    vulnerabilities = @client.vulnerabilities(ecosystem, purl_obj.name)
+    # Use the new PURL-based lookup endpoint
+    vulnerabilities = @client.vulnerabilities_by_purl(purl_string)
     
     if vulnerabilities && vulnerabilities.any?
       severity_counts = vulnerabilities.group_by { |v| v["severity"]&.upcase || "UNKNOWN" }
@@ -1418,19 +1782,11 @@ class SimpleMcpServer
   end
 
   def get_latest_vulnerability_date(args)
-    # Parse the purl to get ecosystem and name
-    purl_obj = Purl::PackageURL.parse(args[:purl] || args["purl"])
-    ecosystem = case purl_obj.type
-                when "pypi" then "pypi"
-                when "npm" then "npm"
-                when "cargo" then "cargo"
-                when "gem" then "rubygems"
-                when "nuget" then "nuget"
-                when "maven" then "maven"
-                else purl_obj.type
-                end
+    purl_string = args[:purl] || args["purl"]
+    return { error: "PURL required" } unless purl_string
     
-    vulnerabilities = @client.vulnerabilities(ecosystem, purl_obj.name)
+    # Use the new PURL-based lookup endpoint
+    vulnerabilities = @client.vulnerabilities_by_purl(purl_string)
     
     if vulnerabilities && vulnerabilities.any?
       latest_date = vulnerabilities.map { |v| v["published_at"] }
@@ -1448,6 +1804,196 @@ class SimpleMcpServer
         latest_vulnerability_date: nil,
         days_since_latest: nil
       }
+    end
+  end
+
+  def get_repo_tags(args)
+    page = args[:page] || args["page"] || 1
+    per_page = args[:per_page] || args["per_page"] || 30
+    
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
+    
+    # Parse repository URL to extract host, owner, and repo
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return { error: "Invalid GitHub URL" } if parts.length < 2
+      
+      owner, repo = parts[0], parts[1]
+      repo_data = @client.repository_info("GitHub", owner, repo)
+      return { error: "Repository not found" } unless repo_data
+      
+      tags_url = repo_data["tags_url"]
+      return { error: "Tags URL not available for this repository" } unless tags_url
+      
+      # Add pagination parameters to the tags_url
+      uri = URI(tags_url)
+      params = URI.decode_www_form(uri.query || "")
+      params << ["page", page.to_s]
+      params << ["per_page", per_page.to_s]
+      uri.query = URI.encode_www_form(params)
+      
+      # Fetch tags using the tags_url with pagination
+      tags_response = @client.fetch_external_api(uri.to_s)
+      
+      if tags_response && tags_response.is_a?(Array)
+        { 
+          tags: tags_response,
+          page: page,
+          per_page: per_page
+        }
+      else
+        { error: "Failed to retrieve tags list" }
+      end
+    else
+      { error: "Only GitHub repositories supported currently" }
+    end
+  end
+
+  def get_repo_releases(args)
+    page = args[:page] || args["page"] || 1
+    per_page = args[:per_page] || args["per_page"] || 30
+    
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
+    
+    # Parse repository URL to extract host, owner, and repo
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return { error: "Invalid GitHub URL" } if parts.length < 2
+      
+      owner, repo = parts[0], parts[1]
+      repo_data = @client.repository_info("GitHub", owner, repo)
+      return { error: "Repository not found" } unless repo_data
+      
+      releases_url = repo_data["releases_url"]
+      return { error: "Releases URL not available for this repository" } unless releases_url
+      
+      # Add pagination parameters to the releases_url
+      uri = URI(releases_url)
+      params = URI.decode_www_form(uri.query || "")
+      params << ["page", page.to_s]
+      params << ["per_page", per_page.to_s]
+      uri.query = URI.encode_www_form(params)
+      
+      # Fetch releases using the releases_url with pagination
+      releases_response = @client.fetch_external_api(uri.to_s)
+      
+      if releases_response && releases_response.is_a?(Array)
+        { 
+          releases: releases_response,
+          page: page,
+          per_page: per_page
+        }
+      else
+        { error: "Failed to retrieve releases list" }
+      end
+    else
+      { error: "Only GitHub repositories supported currently" }
+    end
+  end
+
+  def get_repo_sbom(args)
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
+    
+    # Parse repository URL to extract host, owner, and repo
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return { error: "Invalid GitHub URL" } if parts.length < 2
+      
+      owner, repo = parts[0], parts[1]
+      repo_data = @client.repository_info("GitHub", owner, repo)
+      return { error: "Repository not found" } unless repo_data
+      
+      sbom_url = repo_data["sbom_url"]
+      return { error: "SBOM URL not available for this repository" } unless sbom_url
+      
+      # Fetch SBOM data using the sbom_url
+      sbom_response = @client.fetch_external_api(sbom_url)
+      
+      if sbom_response
+        { 
+          sbom: sbom_response
+        }
+      else
+        { error: "Failed to retrieve SBOM data" }
+      end
+    else
+      { error: "Only GitHub repositories supported currently" }
+    end
+  end
+
+  def get_repo_owner(args)
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
+    
+    # Parse repository URL to extract host, owner, and repo
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return { error: "Invalid GitHub URL" } if parts.length < 2
+      
+      owner, repo = parts[0], parts[1]
+      repo_data = @client.repository_info("GitHub", owner, repo)
+      return { error: "Repository not found" } unless repo_data
+      
+      owner_url = repo_data["owner_url"]
+      return { error: "Owner URL not available for this repository" } unless owner_url
+      
+      # Fetch owner data using the owner_url
+      owner_response = @client.fetch_external_api(owner_url)
+      
+      if owner_response
+        { 
+          owner: owner_response
+        }
+      else
+        { error: "Failed to retrieve owner data" }
+      end
+    else
+      { error: "Only GitHub repositories supported currently" }
+    end
+  end
+
+  def get_repo_scorecard(args)
+    # Resolve repository URL (could be from PURL or direct URL)
+    resolution = resolve_repository_url(args)
+    return resolution if resolution[:error]
+    
+    repo_url = resolution[:repository_url]
+    
+    # Parse repository URL to extract host, owner, and repo
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return { error: "Invalid GitHub URL" } if parts.length < 2
+      
+      owner, repo = parts[0], parts[1]
+      repo_data = @client.repository_info("GitHub", owner, repo)
+      return { error: "Repository not found" } unless repo_data
+      
+      scorecard_data = repo_data["scorecard"]
+      
+      if scorecard_data
+        { 
+          scorecard: scorecard_data
+        }
+      else
+        { error: "Scorecard data not available for this repository" }
+      end
+    else
+      { error: "Only GitHub repositories supported currently" }
     end
   end
 end

@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   # MCP endpoints
   post "/mcp" => "mcp#handle", as: :mcp
   get "/mcp/health" => "mcp#health", as: :mcp_health
+  get "/mcp/admin" => "mcp#admin", as: :mcp_admin
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest

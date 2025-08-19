@@ -1,6 +1,6 @@
-# Ecosyste.ms MCP Server - Supply Chain Risk Analysis
+# Ecosyste.ms MCP Server
 
-A Model Control Protocol (MCP) server providing granular, field-level access to ecosyste.ms supply chain data. Connect this server to Claude Desktop, Claude Code, ChatGPT, or any MCP-compatible LLM to build custom package security analysis workflows using raw data.
+A Model Control Protocol (MCP) server providing granular, field-level access to ecosyste.ms package ecosystem data. Connect this server to Claude Desktop, Claude Code, ChatGPT, or any MCP-compatible LLM to build custom package analysis workflows using raw data.
 
 ---
 
@@ -18,9 +18,16 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_version_info`** - Get specific version metadata (published_at, downloads, author, checksum, size)
 - **`get_version_dependencies`** - Get dependencies for a specific version (requires PURL with version)
 - **`get_package_dependencies`** - Get dependencies for latest version of a package
+- **`get_package_versions`** - Get complete list of all versions for a package with pagination support
+- **`get_package_version_numbers`** - Get simple list of version numbers for a package (lightweight alternative to get_package_versions)
+- **`get_related_packages`** - Get packages related to this package (dependencies, dependents, similar packages) with pagination support
+- **`get_dependent_packages`** - Get packages that depend on this package with pagination support
+- **`get_package_maintainers`** - Get package maintainers list with detailed information
 - **`get_version_urls`** - Get ecosyste.ms URLs for specific version analysis and registry links
 
 ### Repository Analysis Tools
+**Note: All repository tools accept either direct repository URLs (e.g., `github.com/numpy/numpy`) or PURLs (e.g., `pkg:pypi/numpy`). When a PURL is provided, the tool automatically resolves the package's repository URL.**
+
 - **`get_repo_basic_info`** - Get repository basic info (id, full_name, owner, description, archived, fork)
 - **`get_repo_activity`** - Get repository activity metrics (pushed_at, size, last_synced_at)
 - **`get_repo_community`** - Get community metrics (stars, forks, subscribers, open_issues)
@@ -32,6 +39,11 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_repo_readme`** - Get repository README content using archives API
 - **`get_repo_changelog`** - Get repository changelog with parsed version entries using archives API
 - **`get_repo_repomix`** - Get AI-friendly concatenated string of all repository file contents using archives API
+- **`get_repo_tags`** - Get repository tags with pagination support using ecosyste.ms repos API
+- **`get_repo_releases`** - Get repository releases with pagination support using ecosyste.ms repos API
+- **`get_repo_sbom`** - Get repository SBOM (Software Bill of Materials) using ecosyste.ms repos API
+- **`get_repo_owner`** - Get repository owner information using ecosyste.ms repos API
+- **`get_repo_scorecard`** - Get repository security scorecard using ecosyste.ms repos API
 - **`get_repo_urls`** - Get ecosyste.ms URLs for repository analysis across all platforms (repos, issues, commits)
 
 ### Issue Tracking Tools
@@ -81,7 +93,7 @@ Add to your `claude_desktop_config.json`:
 rails server
 
 # Add the MCP server in one line
-claude mcp add ecosystems http://localhost:3000/mcp
+claude mcp add ecosystems http://localhost:3000/mcp -t http
 ```
 
 **Option 2: Manual Configuration**
@@ -228,14 +240,14 @@ curl -X POST http://localhost:3000/mcp \
 
 3. **Connect your LLM** using the instructions above
 
-4. **Start analyzing!** Use the example prompts or create your own supply chain risk assessments.
+4. **Start analyzing!** Use the example prompts or create your own package analysis workflows.
 
 ---
 
 ## 🏆 **KEY FEATURES**
 
 ### **Granular Data Access**
-- **34+ MCP Tools** providing raw, field-level access to ecosyste.ms data
+- **43 MCP Tools** providing raw, field-level access to ecosyste.ms data
 - **No Opinions** - Tools return raw API fields, users decide what data means
 - **Composable** - Mix and match tools for custom analysis workflows
 - **Multi-Ecosystem Support** - PyPI, npm, Cargo, RubyGems, Maven, NuGet via PURL
@@ -249,7 +261,8 @@ curl -X POST http://localhost:3000/mcp \
 
 ### **Performance & Reliability**
 - **24-Hour Caching** - All API responses cached for 24 hours for fast repeat queries
-- **Robust Error Handling** - Graceful fallbacks and comprehensive logging
+- **Robust Error Handling** - Graceful fallbacks and comprehensive logging with automatic retry logic
+- **Automatic Retry Logic** - Server errors (5xx), rate limiting (429), and network timeouts automatically retried with exponential backoff
 - **Full Test Coverage** - Unit tests and integration tests ensure reliability
 
 ### **LLM-Optimized Design**
@@ -337,7 +350,7 @@ These features could extend the system but are not currently planned:
 ### Advanced Security Analysis
 - **Code signing verification** - Check package signing practices
 - **Typosquatting detection** - Identify similar malicious packages  
-- **Build security assessment** - CI/CD pipeline security analysis
+- **Build security analysis** - CI/CD pipeline security analysis
 - **2FA enforcement tracking** - Maintainer 2FA status verification
 
 ### Enhanced Intelligence

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MCP Tool Calls Admin</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2em; font-weight: bold; color: #2563eb; }
+    .stat-label { color: #666; font-size: 0.9em; margin-top: 5px; }
+    .tool-calls { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tool-call { border-bottom: 1px solid #eee; padding: 15px; }
+    .tool-call:last-child { border-bottom: none; }
+    .tool-name { font-weight: bold; color: #2563eb; font-size: 1.1em; }
+    .tool-meta { color: #666; font-size: 0.9em; margin-top: 5px; }
+    .tool-purl { background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; margin-top: 5px; display: inline-block; }
+    .tool-args { margin-top: 10px; }
+    .tool-args details { margin-top: 5px; }
+    .tool-args summary { cursor: pointer; color: #666; font-size: 0.9em; }
+    .tool-args pre { background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 0.8em; overflow-x: auto; margin: 5px 0 0 0; }
+    .refresh-link { float: right; color: #2563eb; text-decoration: none; }
+    .refresh-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MCP Tool Calls Admin</h1>
+      <a href="/mcp/admin" class="refresh-link">🔄 Refresh</a>
+      <p>Monitoring tool usage and analytics for the MCP server</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:total_calls] %></div>
+        <div class="stat-label">Total Calls</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:unique_tools] %></div>
+        <div class="stat-label">Unique Tools</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:unique_purls] %></div>
+        <div class="stat-label">Unique PURLs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:unique_ips] %></div>
+        <div class="stat-label">Unique IPs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:calls_today] %></div>
+        <div class="stat-label">Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:calls_this_week] %></div>
+        <div class="stat-label">This Week</div>
+      </div>
+    </div>
+
+    <div class="tool-calls">
+      <% if @tool_calls.any? %>
+        <% @tool_calls.each do |call| %>
+          <div class="tool-call">
+            <div class="tool-name"><%= call.tool_name %></div>
+            <div class="tool-meta">
+              <%= call.created_at.strftime("%Y-%m-%d %H:%M:%S") %> 
+              <% if call.ip_address %> • IP: <%= call.ip_address %><% end %>
+              <% if call.user_agent %> • UA: <%= truncate(call.user_agent, length: 50) %><% end %>
+            </div>
+            <% if call.purl %>
+              <div class="tool-purl"><%= call.purl %></div>
+            <% end %>
+            <div class="tool-args">
+              <details>
+                <summary>Arguments (<%= call.arguments.length %> chars)</summary>
+                <pre><%= JSON.pretty_generate(JSON.parse(call.arguments)) rescue call.arguments %></pre>
+              </details>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="tool-call" style="text-align: center; color: #666;">
+          No tool calls recorded yet.
+        </div>
+      <% end %>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9em;">
+      Showing last 1000 tool calls • <a href="/mcp/admin.json">JSON API</a> • <a href="/mcp/health">Health Check</a>
+    </div>
+  </div>
+</body>
+</html>

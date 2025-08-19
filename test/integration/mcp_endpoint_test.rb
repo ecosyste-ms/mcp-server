@@ -32,12 +32,12 @@ class McpEndpointTest < ActionDispatch::IntegrationTest
     
     # Check that our tools are present
     tool_names = response_data["result"]["tools"].map { |t| t["name"] }
-    assert_includes tool_names, "get_package_name"
-    assert_includes tool_names, "analyze_package"
-    assert_includes tool_names, "lookup_vulnerabilities"
+    assert_includes tool_names, "get_package_basic_info"
+    assert_includes tool_names, "get_vulnerability_list"
+    assert_includes tool_names, "get_repo_basic_info"
   end
 
-  test "can call analyze_package tool" do
+  test "can call get_package_basic_info tool" do
     skip "Integration test - requires network" unless ENV['RUN_INTEGRATION_TESTS']
     
     request_body = {
@@ -45,7 +45,7 @@ class McpEndpointTest < ActionDispatch::IntegrationTest
       id: 2,
       method: "tools/call",
       params: {
-        name: "analyze_package",
+        name: "get_package_basic_info",
         arguments: {
           purl: "pkg:cargo/rand"
         }
@@ -76,7 +76,7 @@ class McpEndpointTest < ActionDispatch::IntegrationTest
       id: 3,
       method: "tools/call",
       params: {
-        name: "get_package_name",
+        name: "get_package_basic_info",
         arguments: {
           purl: "pkg:pypi/this-package-definitely-does-not-exist-12345"
         }
