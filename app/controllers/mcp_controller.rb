@@ -6,7 +6,8 @@ class McpController < ApplicationController
       request_body = request.body.read
       
       mcp_server = McpServer.new
-      response_data = mcp_server.handle_request(request_body, user_agent: request.headers["User-Agent"], request_id: request.request_id, ip_address: request.remote_ip)
+      client_ip = request.headers["X-Forwarded-For"]&.split(',')&.first&.strip || request.remote_ip
+      response_data = mcp_server.handle_request(request_body, user_agent: request.headers["User-Agent"], request_id: request.request_id, ip_address: client_ip)
 
       render json: response_data
     # rescue => e

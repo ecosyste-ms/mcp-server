@@ -93,4 +93,61 @@ class McpEndpointTest < ActionDispatch::IntegrationTest
     
     assert_equal "Package not found", parsed_result["error"]
   end
+
+  test "uses forwarded IP address from X-Forwarded-For header" do
+    original_count = ToolCall.count
+    client_ip = "203.0.113.1"
+    
+    request_body = {
+      jsonrpc: "2.0",
+      id: 4,
+      method: "tools/call",
+      params: {
+        name: "get_package_basic_info",
+        arguments: {
+          purl: "pkg:pypi/nonexistent-test-package"
+        }
+      }
+    }.to_json
+    
+    post "/mcp", params: request_body, headers: { 
+      'Content-Type': 'application/json',
+      'X-Forwarded-For': "#{client_ip}, 198.51.100.1"
+    }
+    
+    assert_response :success
+    
+    # Verify the tool call was logged with the correct IP
+    assert_equal original_count + 1, ToolCall.count
+    latest_call = ToolCall.order(:created_at).last
+    assert_equal client_ip, latest_call.ip_address
+  end
+
+  test "falls back to remote_ip when X-Forwarded-For header is not present" do
+    original_count = ToolCall.count
+    
+    request_body = {
+      jsonrpc: "2.0",
+      id: 5,
+      method: "tools/call",
+      params: {
+        name: "get_package_basic_info",
+        arguments: {
+          purl: "pkg:pypi/nonexistent-test-package"
+        }
+      }
+    }.to_json
+    
+    post "/mcp", params: request_body, headers: { 
+      'Content-Type': 'application/json'
+    }
+    
+    assert_response :success
+    
+    # Verify the tool call was logged with some IP (should be 127.0.0.1 in tests)
+    assert_equal original_count + 1, ToolCall.count
+    latest_call = ToolCall.order(:created_at).last
+    assert_not_nil latest_call.ip_address
+    assert latest_call.ip_address.length > 0
+  end
 end
