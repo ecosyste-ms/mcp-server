@@ -1,52 +1,55 @@
 # Ecosyste.ms MCP Server - Supply Chain Risk Analysis
 
-A Model Control Protocol (MCP) server for supply chain risk analysis using ecosyste.ms APIs. Connect this server to Claude Desktop, Claude Code, ChatGPT, or any MCP-compatible LLM to perform comprehensive package security analysis.
-
-## 🚀 **CURRENT STATUS: PRODUCTION READY**
-
-**✅ 22/22 MCP Tools Implemented (100% Complete)**
-**✅ 24-Hour API Response Caching**
-**✅ Multi-Ecosystem Support (PyPI, npm, Cargo, RubyGems, Maven, NuGet)**
-**✅ Full Test Coverage (Unit + Integration)**
+A Model Control Protocol (MCP) server providing granular, field-level access to ecosyste.ms supply chain data. Connect this server to Claude Desktop, Claude Code, ChatGPT, or any MCP-compatible LLM to build custom package security analysis workflows using raw data.
 
 ---
 
 ## 🛠️ **AVAILABLE MCP TOOLS**
 
-### Core Package Information
-- **`get_package_name`** - Extract package name from PURL
-- **`get_authors`** - Get maintainer/author information with fallbacks
-- **`get_version`** - Get latest or specific version information  
-- **`get_description`** - Extract package description (truncated if long)
-- **`get_license`** - Get license information
-- **`get_repository`** - Get normalized repository URL
-- **`get_purl`** - Generate standardized Package URL
+### Package Metadata Tools
+- **`get_package_basic_info`** - Get basic package information (id, name, ecosystem, description, homepage, licenses)
+- **`get_package_dates`** - Get package creation and update dates (created_at, updated_at, first_release_published_at)
+- **`get_package_repository_info`** - Get repository URL and social metrics (stars, forks)
+- **`get_package_versions_info`** - Get version count and latest release info
+- **`get_package_keywords`** - Get package keywords and categories
+- **`get_package_urls`** - Get ecosyste.ms URLs and related links (repository_url, homepage, icon_url)
 
-### Vulnerability Analysis
-- **`lookup_vulnerabilities`** - Check for known vulnerabilities (CVEs, severity, CVSS)
-- **`assess_vulnerability_risk`** - Risk assessment: Green/Yellow/Red
-- **`get_unpatched_vulnerabilities`** - Pending feature placeholder
+### Version-Specific Tools
+- **`get_version_info`** - Get specific version metadata (published_at, downloads, author, checksum, size)
+- **`get_version_dependencies`** - Get dependencies for a specific version (requires PURL with version)
+- **`get_package_dependencies`** - Get dependencies for latest version of a package
+- **`get_version_urls`** - Get ecosyste.ms URLs for specific version analysis and registry links
 
-### Maintenance & Activity
-- **`get_maintainer_activity`** - Active maintainers with (Y/N) indicators
-- **`get_contributor_activity`** - High/Medium/Low activity levels
-- **`check_lifecycle`** - Actively maintained/Maintenance mode/Stale
+### Repository Analysis Tools
+- **`get_repo_basic_info`** - Get repository basic info (id, full_name, owner, description, archived, fork)
+- **`get_repo_activity`** - Get repository activity metrics (pushed_at, size, last_synced_at)
+- **`get_repo_community`** - Get community metrics (stars, forks, subscribers, open_issues)
+- **`get_repo_metadata`** - Get repository metadata (topics, language, license, default_branch)
+- **`get_repo_dependencies`** - Get dependencies from repository manifest files (Gemfile, package.json, etc.)
+- **`get_repo_metafiles`** - Get list of interesting metadata files from repository info (LICENSE, README, etc.)
+- **`get_repo_files`** - Get complete list of files in repository using archives API
+- **`get_repo_file_contents`** - Get contents of a specific file from repository using archives API
+- **`get_repo_readme`** - Get repository README content using archives API
+- **`get_repo_changelog`** - Get repository changelog with parsed version entries using archives API
+- **`get_repo_repomix`** - Get AI-friendly concatenated string of all repository file contents using archives API
+- **`get_repo_urls`** - Get ecosyste.ms URLs for repository analysis across all platforms (repos, issues, commits)
 
-### Governance & Community
-- **`analyze_governance`** - Strong community/Organization-backed/Individual maintainer
-- **`assess_importance`** - High/Medium/Low industry importance
-- **`find_audits`** - Check for security audits (hardcoded known audits)
-- **`check_security_policy`** - Look for SECURITY.md files
+### Issue Tracking Tools
+- **`get_issue_counts`** - Get issue and PR counts (total, closed)
+- **`get_issue_timing`** - Get average time to close issues and PRs
+- **`get_maintainer_info`** - Get maintainer lists (all-time and active)
+- **`get_contributor_counts`** - Get contributor counts for PRs and issues
+- **`get_past_year_activity`** - Get past year issue and PR activity
 
-### Risk Assessment
-- **`assess_tampering_risk`** - Based on maintainer count and security practices
-- **`assess_sustainability_risk`** - Based on maintainer count and activity
-- **`generate_risk_analysis`** - Comprehensive risk narrative with raw data
-- **`suggest_action`** - None/Monitor/Monitor for updates/Consider alternatives
+### Commit Activity Tools
+- **`get_commit_overview`** - Get repository commit overview (id, full_name, default_branch)
+- **`get_committer_list`** - Get complete list of committers with commit counts
+- **`get_top_committers`** - Get top N committers by commit count
 
-### Comprehensive Analysis
-- **`analyze_package`** - Complete package analysis in single call
-- **`analyze_security_posture`** - Pending feature placeholder (2FA, signing, etc.)
+### Vulnerability Tools
+- **`get_vulnerability_list`** - Get detailed list of all vulnerabilities with CVE details
+- **`get_vulnerability_counts_by_severity`** - Get vulnerability counts grouped by severity (critical, high, moderate, low)
+- **`get_latest_vulnerability_date`** - Get the date of the most recent vulnerability
 
 ---
 
@@ -138,29 +141,61 @@ Connect any MCP-compatible client to:
 
 Once connected, try these prompts:
 
-**"Analyze numpy's supply chain risks"**
+**"Analyze numpy's dependencies and vulnerabilities"**
 ```
-Please analyze the supply chain risks for pkg:pypi/numpy using the MCP tools. 
-Include governance, vulnerabilities, maintainer activity, and suggested actions.
-```
-
-**"Generate a CSV risk analysis for these packages"**  
-```
-Create a supply chain risk analysis CSV for these packages:
-- pkg:pypi/numpy
-- pkg:pypi/requests  
-- pkg:pypi/django
-- pkg:npm/lodash
-
-Include all risk assessment columns.
+Use the MCP tools to:
+1. Get basic info for pkg:pypi/numpy
+2. Get its latest dependencies 
+3. Check vulnerability counts by severity
+4. Show the top 5 committers for the numpy/numpy repository
 ```
 
-**"Compare maintenance quality across ecosystems"**
+**"Compare package metadata across ecosystems"**  
 ```
-Compare the maintenance quality and risk profiles between:
-- pkg:pypi/flask (Python)
-- pkg:npm/express (Node.js) 
-- pkg:cargo/serde (Rust)
+Compare package metadata between:
+- pkg:pypi/requests (Python)
+- pkg:npm/axios (Node.js)
+- pkg:cargo/reqwest (Rust)
+
+Use tools to get basic info, repository metrics, and latest versions for each.
+```
+
+**"Analyze repository dependencies and activity"**
+```
+For github.com/microsoft/vscode:
+1. Get repository community metrics
+2. Get dependencies from manifest files
+3. Get issue counts and timing
+4. Show maintainer information
+```
+
+**"Dependency tree analysis"**
+```
+Get dependencies for pkg:cargo/tokio and then analyze the dependencies 
+of its top 3 normal (non-dev) dependencies using the version-specific tools.
+```
+
+**"Get exploration URLs for detailed analysis"**
+```
+Use URL tools to get ecosyste.ms links for:
+1. Package URLs for pkg:pypi/django 
+2. Version URLs for pkg:cargo/serde@1.0.193
+3. Repository URLs for github.com/torvalds/linux
+
+Then visit the web interfaces for deeper exploration.
+```
+
+**"Analyze repository files and contents"**
+```
+For github.com/numpy/numpy:
+1. Get metadata files using get_repo_metafiles (LICENSE, README, etc.)
+2. Get complete file list using get_repo_files (via archives API)
+3. Get README content using get_repo_readme (optimized README API)
+4. Get changelog with parsed versions using get_repo_changelog
+5. Get specific version changes using get_repo_changelog with version parameter
+6. Get AI-friendly concatenated codebase using get_repo_repomix (for full code analysis)
+7. Get contents of specific files (LICENSE, SECURITY.md) using get_repo_file_contents
+8. Compare security policies across multiple repositories
 ```
 
 ---
@@ -199,10 +234,18 @@ curl -X POST http://localhost:3000/mcp \
 
 ## 🏆 **KEY FEATURES**
 
-### **Comprehensive Coverage**
-- **22 MCP Tools** covering all aspects of supply chain risk
+### **Granular Data Access**
+- **34+ MCP Tools** providing raw, field-level access to ecosyste.ms data
+- **No Opinions** - Tools return raw API fields, users decide what data means
+- **Composable** - Mix and match tools for custom analysis workflows
 - **Multi-Ecosystem Support** - PyPI, npm, Cargo, RubyGems, Maven, NuGet via PURL
-- **Real API Integration** - ecosyste.ms, advisories.ecosyste.ms, issues.ecosyste.ms, commits.ecosyste.ms
+
+### **Comprehensive Coverage**
+- **Package Metadata** - Basic info, dates, repository details, versions, keywords
+- **Dependencies** - Version-specific and latest dependencies for packages and repositories
+- **Repository Analysis** - Activity, community metrics, manifest files
+- **Issue & Commit Tracking** - Detailed maintainer and contributor activity
+- **Vulnerability Data** - Detailed CVE information with severity breakdowns
 
 ### **Performance & Reliability**
 - **24-Hour Caching** - All API responses cached for 24 hours for fast repeat queries
@@ -210,9 +253,9 @@ curl -X POST http://localhost:3000/mcp \
 - **Full Test Coverage** - Unit tests and integration tests ensure reliability
 
 ### **LLM-Optimized Design**
-- **Dual Response Format** - Simple answers for CSV + raw data for LLM decision-making
+- **Raw Data Focus** - Direct API field exposure for maximum flexibility
 - **PURL Standard Support** - Standardized package identification across ecosystems
-- **Structured Risk Assessment** - Green/Yellow/Red ratings with detailed explanations
+- **Field-Based Architecture** - Tools aligned with actual ecosyste.ms API structure
 
 ### **Production Ready**
 - **JSON-RPC 2.0 Compliance** - Works with all MCP-compatible LLMs
@@ -229,10 +272,11 @@ curl -X POST http://localhost:3000/mcp \
 - **`PackageInfoService`** - Data extraction and normalization logic
 
 ### **API Endpoints Used**
-- **`packages.ecosyste.ms`** - Package metadata, maintainers, versions
-- **`advisories.ecosyste.ms`** - Vulnerability data with CVE details
-- **`issues.ecosyste.ms`** - Repository issue tracking and maintainer activity
-- **`commits.ecosyste.ms`** - Commit activity and contributor analysis
+- **`packages.ecosyste.ms`** - Package metadata, versions, dependencies via PURL lookups
+- **`repos.ecosyste.ms`** - Repository metadata, manifests, and dependency analysis
+- **`advisories.ecosyste.ms`** - Vulnerability data with CVE details and severity rankings
+- **`issues.ecosyste.ms`** - Repository issue tracking, maintainer activity, and PR metrics
+- **`commits.ecosyste.ms`** - Commit activity, contributor analysis, and committer rankings
 
 ### **Caching Strategy**
 - **Cache Key:** `ecosystems_api:{MD5_of_URL}`
@@ -314,12 +358,6 @@ These features could extend the system but are not currently planned:
 
 ## 📝 **NOTES**
 
-### **Dependency Type Classification**
-The `classify_dependency` tool was intentionally **not implemented** because it requires project context (analyzing how dependencies are declared and used in a specific project) rather than package-level metadata. LLMs should classify dependencies based on:
-- Declaration context (dependencies vs devDependencies)
-- Direct vs transitive relationship  
-- Usage patterns in the specific project
-
 ### **Pending Features**
 - `get_unpatched_vulnerabilities` and `analyze_security_posture` return structured "pending_feature_required" responses
 - These placeholders demonstrate potential enhanced capabilities
@@ -339,13 +377,6 @@ This is a production-ready MCP server. All core functionality is implemented and
 ---
 
 ## 📊 **ARCHITECTURE NOTES**
-
-### **Why Custom MCP Implementation?**
-- Started with `fast-mcp` gem but switched to custom implementation for:
-  - Better error handling and logging
-  - Direct control over JSON-RPC 2.0 compliance
-  - Easier testing and debugging
-  - No external gem dependencies for core MCP functionality
 
 ### **Caching Strategy Rationale**
 - **24-hour TTL** balances data freshness with API rate limiting

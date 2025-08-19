@@ -75,6 +75,18 @@ class EcosystemsClient
     make_request(url)
   end
 
+  def repository_manifests(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "#{REPOS_BASE_URL}/hosts/#{host}/repositories/#{encoded_owner}%2F#{encoded_repo}/manifests"
+    make_request(url)
+  end
+
+  # Generic request method for archives API and other external endpoints
+  def fetch_external_api(url)
+    make_request(url)
+  end
+
   private
 
   def make_request(url)
