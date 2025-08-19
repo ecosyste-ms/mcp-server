@@ -3,11 +3,15 @@ class GetRepoActivityTool < BaseTool
     "Get repository activity metrics (pushed_at, size, last_synced_at)"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" }
       },
       required: ["repo_url"]
     }

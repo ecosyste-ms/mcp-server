@@ -3,11 +3,15 @@ class GetRepoDependenciesTool < BaseTool
     "Get dependencies for a repository from manifest files"
   end
 
+  def self.category
+    "Dependencies"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/octobox/octobox)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/octobox/octobox)" }
       },
       required: ["repo_url"]
     }

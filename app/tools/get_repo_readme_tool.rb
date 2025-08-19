@@ -3,6 +3,10 @@ class GetRepoReadmeTool < BaseTool
     "Get repository README content using archives API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

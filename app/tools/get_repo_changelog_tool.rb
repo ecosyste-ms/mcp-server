@@ -3,12 +3,16 @@ class GetRepoChangelogTool < BaseTool
     "Get repository changelog with parsed version entries using archives API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" },
-        version: { type: "string", description: "Optional specific version to get changes for (e.g., '4.0.4')" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
+        version: { type: "string", description: "Optional specific version to get changes for (e.g. '4.0.4')" }
       },
       required: ["repo_url"]
     }

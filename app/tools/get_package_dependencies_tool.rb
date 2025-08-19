@@ -3,11 +3,15 @@ class GetPackageDependenciesTool < BaseTool
     "Get dependencies for latest version of a package"
   end
 
+  def self.category
+    "Dependencies"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL without version (e.g., pkg:cargo/rand)" }
+        purl: { type: "string", description: "Package URL without version (e.g. pkg:cargo/rand)" }
       },
       required: ["purl"]
     }

@@ -3,6 +3,10 @@ class GetRepoOwnerTool < BaseTool
     "Get repository owner information using ecosyste.ms repos API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

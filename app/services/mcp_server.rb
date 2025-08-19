@@ -39,6 +39,9 @@ class McpServer
       }
     }
   rescue => e
+    Rails.logger.error "MCP Error: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    # Return a generic internal error response
     {
       jsonrpc: "2.0",
       id: request[:id],
@@ -51,7 +54,7 @@ class McpServer
   end
 
   def tools_list
-    available_tool_classes.map(&:to_mcp_tool)
+    available_tool_classes.map(&:to_mcp_tool).sort_by { |tool| [tool[:category], tool[:name]] }
   end
 
   def handle_initialize(request)

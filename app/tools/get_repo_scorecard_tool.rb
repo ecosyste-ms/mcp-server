@@ -3,6 +3,10 @@ class GetRepoScorecardTool < BaseTool
     "Get repository security scorecard using ecosyste.ms repos API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

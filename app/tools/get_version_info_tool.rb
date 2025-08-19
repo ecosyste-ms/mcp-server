@@ -3,11 +3,15 @@ class GetVersionInfoTool < BaseTool
     "Get specific version metadata (published_at, downloads, author)"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL with version (e.g., pkg:pypi/numpy@1.24.0)" }
+        purl: { type: "string", description: "Package URL with version (e.g. pkg:pypi/numpy@1.24.0)" }
       },
       required: ["purl"]
     }
@@ -19,7 +23,7 @@ class GetVersionInfoTool < BaseTool
 
     # Parse version from PURL
     parts = purl_string.split('@')
-    return { error: "Version required in PURL (e.g., pkg:pypi/numpy@1.24.0)" } unless parts.length == 2
+    return { error: "Version required in PURL (e.g. pkg:pypi/numpy@1.24.0)" } unless parts.length == 2
     
     package_purl, version = parts
     response = @client.version_info(package_purl, version)

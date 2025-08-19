@@ -3,11 +3,15 @@ class GetPackageMaintainersTool < BaseTool
     "Get package maintainers list"
   end
 
+  def self.category
+    "Package"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:pypi/requests)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/requests)" }
       },
       required: ["purl"]
     }

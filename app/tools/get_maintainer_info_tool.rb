@@ -3,11 +3,15 @@ class GetMaintainerInfoTool < BaseTool
     "Get maintainer lists (all-time and active)"
   end
 
+  def self.category
+    "Contributors"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" }
       },
       required: ["repo_url"]
     }

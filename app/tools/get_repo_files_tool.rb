@@ -3,11 +3,15 @@ class GetRepoFilesTool < BaseTool
     "Get complete list of files in repository using archives API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" }
       },
       required: ["repo_url"]
     }

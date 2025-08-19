@@ -3,11 +3,15 @@ class GetRepoBasicInfoTool < BaseTool
     "Get repository basic info (id, full_name, owner, description, archived, fork)"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy) or PURL (e.g. pkg:pypi/numpy)" }
       },
       required: ["repo_url"]
     }

@@ -9,18 +9,18 @@ class McpController < ApplicationController
       response_data = mcp_server.handle_request(request_body, user_agent: request.headers["User-Agent"], request_id: request.request_id, ip_address: request.remote_ip)
 
       render json: response_data
-    rescue => e
-      Rails.logger.error "MCP Error: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+    # rescue => e
+    #   Rails.logger.error "MCP Error: #{e.message}"
+    #   Rails.logger.error e.backtrace.join("\n")
 
-      render json: {
-        jsonrpc: "2.0",
-        error: {
-          code: -32603,
-          message: "Internal error",
-          data: e.message
-        }
-      }, status: 500
+    #   render json: {
+    #     jsonrpc: "2.0",
+    #     error: {
+    #       code: -32603,
+    #       message: "Internal error",
+    #       data: e.message
+    #     }
+    #   }, status: 500
     end
   end
 

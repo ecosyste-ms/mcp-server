@@ -3,6 +3,10 @@ class GetRepoMetafilesTool < BaseTool
     "Get list of interesting metadata files from repository info (LICENSE, README, etc.)"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

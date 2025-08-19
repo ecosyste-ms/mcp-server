@@ -26,7 +26,7 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_version_urls`** - Get ecosyste.ms URLs for specific version analysis and registry links
 
 ### Repository Analysis Tools
-**Note: All repository tools accept either direct repository URLs (e.g., `github.com/numpy/numpy`) or PURLs (e.g., `pkg:pypi/numpy`). When a PURL is provided, the tool automatically resolves the package's repository URL.**
+**Note: All repository tools accept either direct repository URLs (e.g. `github.com/numpy/numpy`) or PURLs (e.g. `pkg:pypi/numpy`). When a PURL is provided, the tool automatically resolves the package's repository URL.**
 
 - **`get_repo_basic_info`** - Get repository basic info (id, full_name, owner, description, archived, fork)
 - **`get_repo_activity`** - Get repository activity metrics (pushed_at, size, last_synced_at)

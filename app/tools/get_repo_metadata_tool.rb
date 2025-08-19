@@ -3,6 +3,10 @@ class GetRepoMetadataTool < BaseTool
     "Get repository metadata (topics, language, license, default_branch)"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

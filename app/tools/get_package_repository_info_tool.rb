@@ -3,11 +3,15 @@ class GetPackageRepositoryInfoTool < BaseTool
     "Get repository URL and social metrics (stars, forks)"
   end
 
+  def self.category
+    "Package"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/numpy)" }
       },
       required: ["purl"]
     }

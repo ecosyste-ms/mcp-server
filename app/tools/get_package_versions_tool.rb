@@ -3,11 +3,15 @@ class GetPackageVersionsTool < BaseTool
     "Get complete list of all versions for a package"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:cargo/rand)" },
+        purl: { type: "string", description: "Package URL (e.g. pkg:cargo/rand)" },
         page: { type: "number", description: "Page number (default: 1)" },
         per_page: { type: "number", description: "Items per page (default: 30, max: 100)" }
       },

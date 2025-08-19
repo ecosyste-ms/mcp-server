@@ -3,12 +3,16 @@ class GetRepoFileContentsTool < BaseTool
     "Get contents of a specific file from a repository using archives API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" },
-        file_path: { type: "string", description: "Path to file within repository (e.g., LICENSE, README.md)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
+        file_path: { type: "string", description: "Path to file within repository (e.g. LICENSE, README.md)" }
       },
       required: ["repo_url", "file_path"]
     }

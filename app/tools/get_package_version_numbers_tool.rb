@@ -3,11 +3,15 @@ class GetPackageVersionNumbersTool < BaseTool
     "Get simple list of version numbers for a package"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/numpy)" }
       },
       required: ["purl"]
     }

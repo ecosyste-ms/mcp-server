@@ -3,11 +3,15 @@ class GetContributorCountsTool < BaseTool
     "Get contributor counts for PRs and issues"
   end
 
+  def self.category
+    "Contributors"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" }
       },
       required: ["repo_url"]
     }

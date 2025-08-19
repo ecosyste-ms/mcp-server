@@ -11,6 +11,10 @@ class BaseTool
     raise NotImplementedError, "Must implement description"
   end
 
+  def self.category
+    "Uncategorized"
+  end
+
   def self.input_schema
     raise NotImplementedError, "Must implement input_schema"
   end
@@ -23,7 +27,8 @@ class BaseTool
     {
       name: tool_name,
       description: description,
-      inputSchema: input_schema
+      inputSchema: input_schema,
+      category: category
     }
   end
 

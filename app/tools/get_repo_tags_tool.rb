@@ -3,6 +3,10 @@ class GetRepoTagsTool < BaseTool
     "Get repository tags using ecosyste.ms repos API"
   end
 
+  def self.category
+    "Repository"
+  end
+
   def self.input_schema
     {
       type: "object",

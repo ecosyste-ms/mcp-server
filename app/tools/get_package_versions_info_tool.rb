@@ -3,11 +3,15 @@ class GetPackageVersionsInfoTool < BaseTool
     "Get version count and latest release info"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/numpy)" }
       },
       required: ["purl"]
     }

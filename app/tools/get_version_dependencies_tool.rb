@@ -3,11 +3,15 @@ class GetVersionDependenciesTool < BaseTool
     "Get dependencies for a specific version"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL with version (e.g., pkg:cargo/rand@0.9.2)" }
+        purl: { type: "string", description: "Package URL with version (e.g. pkg:cargo/rand@0.9.2)" }
       },
       required: ["purl"]
     }

@@ -3,11 +3,15 @@ class GetVersionUrlsTool < BaseTool
     "Get ecosyste.ms URLs for specific version analysis"
   end
 
+  def self.category
+    "Version"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL with version (e.g., pkg:pypi/numpy@1.24.0)" }
+        purl: { type: "string", description: "Package URL with version (e.g. pkg:pypi/numpy@1.24.0)" }
       },
       required: ["purl"]
     }

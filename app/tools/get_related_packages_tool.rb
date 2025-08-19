@@ -3,11 +3,15 @@ class GetRelatedPackagesTool < BaseTool
     "Get packages related to this package (dependencies, dependents, similar packages)"
   end
 
+  def self.category
+    "Package"
+  end
+
   def self.input_schema
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g., pkg:npm/react)" },
+        purl: { type: "string", description: "Package URL (e.g. pkg:npm/react)" },
         page: { type: "number", description: "Page number (default: 1)" }
       },
       required: ["purl"]
