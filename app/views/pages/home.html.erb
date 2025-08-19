@@ -99,6 +99,87 @@
       <strong><%= @total_tools %></strong> MCP tools available for package ecosystem analysis
     </div>
 
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+      <h2 style="margin-top: 0; color: #856404;">🔧 Setup Instructions</h2>
+      
+      <h3 style="color: #856404; margin-bottom: 10px;">Claude Desktop</h3>
+      <p>Add this to your <code>claude_desktop_config.json</code>:</p>
+      <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px;"><code>{
+  "mcpServers": {
+    "ecosystems": {
+      "command": "curl",
+      "args": [
+        "-X", "POST",
+        "https://mcp.ecosyste.ms/mcp",
+        "-H", "Content-Type: application/json",
+        "-d", "@-"
+      ]
+    }
+  }
+}}</code></pre>
+
+      <h3 style="color: #856404; margin-bottom: 10px;">Claude Code (VS Code/CLI)</h3>
+      <p><strong>Option 1: CLI (Recommended)</strong></p>
+      <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px;"><code>claude mcp add ecosystems https://mcp.ecosyste.ms/mcp -t http</code></pre>
+      
+      <p><strong>Option 2: Manual Configuration</strong><br>Add to your Claude Code settings:</p>
+      <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px;"><code>{
+  "mcp.servers": {
+    "ecosystems": {
+      "url": "https://mcp.ecosyste.ms/mcp"
+    }
+  }
+}</code></pre>
+
+      <h3 style="color: #856404; margin-bottom: 10px;">ChatGPT (Custom GPT/Actions)</h3>
+      <p>Create a new GPT Action with this OpenAPI spec:</p>
+      <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px;"><code>openapi: 3.0.0
+info:
+  title: Ecosystems MCP Server
+  version: 1.0.0
+servers:
+  - url: https://mcp.ecosyste.ms
+paths:
+  /mcp:
+    post:
+      operationId: callMcpTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jsonrpc:
+                  type: string
+                  default: "2.0"
+                method:
+                  type: string
+                  enum: ["tools/list", "tools/call"]
+                params:
+                  type: object
+      responses:
+        '200':
+          description: MCP response</code></pre>
+
+      <h3 style="color: #856404; margin-bottom: 10px;">Generic MCP Client</h3>
+      <p>Connect any MCP-compatible client to:</p>
+      <ul style="margin-top: 10px; padding-left: 20px;">
+        <li><strong>Endpoint:</strong> <code>https://mcp.ecosyste.ms/mcp</code></li>
+        <li><strong>Protocol:</strong> JSON-RPC 2.0</li>
+        <li><strong>Methods:</strong> <code>tools/list</code>, <code>tools/call</code></li>
+      </ul>
+      
+      <p style="margin-top: 15px;"><strong>Test the connection:</strong></p>
+      <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px;"><code># Health check
+curl https://mcp.ecosyste.ms/mcp/health
+
+# List available tools  
+curl -X POST https://mcp.ecosyste.ms/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'</code></pre>
+    </div>
+
     <% @tools_by_category.sort.each do |category, tools| %>
       <div class="category-section">
         <div class="category-title">

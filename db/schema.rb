@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_19_134824) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_19_153859) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,9 +23,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_19_134824) do
     t.string "ip_address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "error_message"
+    t.string "error_type"
+    t.boolean "success", default: true
     t.index ["created_at"], name: "index_tool_calls_on_created_at"
+    t.index ["error_type"], name: "index_tool_calls_on_error_type"
     t.index ["ip_address"], name: "index_tool_calls_on_ip_address"
     t.index ["purl"], name: "index_tool_calls_on_purl"
+    t.index ["success"], name: "index_tool_calls_on_success"
     t.index ["tool_name"], name: "index_tool_calls_on_tool_name"
   end
 end

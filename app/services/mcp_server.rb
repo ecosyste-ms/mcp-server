@@ -99,22 +99,66 @@ class McpServer
     # Extract PURL from arguments if present
     purl = arguments[:purl] || arguments["purl"] || arguments[:repo_url] || arguments["repo_url"]
     
-    # Log the tool call
-    ToolCall.log_call(
-      tool_name: tool_name,
-      arguments: arguments,
-      purl: purl,
-      user_agent: user_agent,
-      request_id: request_id,
-      ip_address: ip_address
-    )
-    
-    tool_class = find_tool_class(tool_name)
-    if tool_class
-      tool_instance = tool_class.new(@client)
-      result = tool_instance.call(arguments)
-    else
-      result = { error: "Unknown tool: #{tool_name}" }
+    begin
+      tool_class = find_tool_class(tool_name)
+      if tool_class
+        tool_instance = tool_class.new(@client)
+        result = tool_instance.call(arguments)
+        
+        # Check if the result contains an error
+        if result.is_a?(Hash) && (result.key?(:error) || result.key?("error"))
+          error_msg = result[:error] || result["error"]
+          # Log as error with the tool's error message
+          ToolCall.log_error(
+            tool_name: tool_name,
+            arguments: arguments,
+            error: StandardError.new(error_msg),
+            purl: purl,
+            user_agent: user_agent,
+            request_id: request_id,
+            ip_address: ip_address
+          )
+        else
+          # Log successful call
+          ToolCall.log_success(
+            tool_name: tool_name,
+            arguments: arguments,
+            purl: purl,
+            user_agent: user_agent,
+            request_id: request_id,
+            ip_address: ip_address
+          )
+        end
+      else
+        # Log unknown tool error
+        error = StandardError.new("Unknown tool: #{tool_name}")
+        ToolCall.log_error(
+          tool_name: tool_name,
+          arguments: arguments,
+          error: error,
+          purl: purl,
+          user_agent: user_agent,
+          request_id: request_id,
+          ip_address: ip_address
+        )
+        result = { error: "Unknown tool: #{tool_name}" }
+      end
+    rescue => e
+      # Log any exceptions that occur during tool execution
+      Rails.logger.error "Tool call exception: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      
+      ToolCall.log_error(
+        tool_name: tool_name,
+        arguments: arguments,
+        error: e,
+        purl: purl,
+        user_agent: user_agent,
+        request_id: request_id,
+        ip_address: ip_address
+      )
+      
+      result = { error: "Tool execution failed: #{e.message}" }
     end
 
     {
