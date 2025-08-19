@@ -76,11 +76,27 @@
       </div>
     </div>
 
+    <% if @stats[:top_error_types].any? %>
+      <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: #ef4444;">🚨 Top Error Types</h3>
+        <% @stats[:top_error_types].each do |error_type, count| %>
+          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0f0f0;">
+            <span><%= error_type %></span>
+            <span style="font-weight: bold; color: #ef4444;"><%= count %> occurrences</span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
     <div class="tool-calls">
+      <h3 style="padding: 20px 20px 0; margin: 0; color: #333;">Recent Tool Calls</h3>
       <% if @tool_calls.any? %>
         <% @tool_calls.each do |call| %>
-          <div class="tool-call">
-            <div class="tool-name"><%= call.tool_name %></div>
+          <div class="tool-call <%= 'failed' unless call.success %>">
+            <div class="tool-name <%= 'failed' unless call.success %>">
+              <%= call.tool_name %>
+              <% unless call.success %><span style="color: #ef4444; margin-left: 10px;">❌ FAILED</span><% end %>
+            </div>
             <div class="tool-meta">
               <%= call.created_at.strftime("%Y-%m-%d %H:%M:%S") %> 
               <% if call.ip_address %> • IP: <%= call.ip_address %><% end %>
@@ -88,6 +104,11 @@
             </div>
             <% if call.purl %>
               <div class="tool-purl"><%= call.purl %></div>
+            <% end %>
+            <% unless call.success %>
+              <div class="error-message">
+                <strong><%= call.error_type %>:</strong> <%= call.error_message %>
+              </div>
             <% end %>
             <div class="tool-args">
               <details>
@@ -103,6 +124,35 @@
         </div>
       <% end %>
     </div>
+
+    <% if @failed_calls.any? %>
+      <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 20px;">
+        <h3 style="padding: 20px 20px 0; margin: 0; color: #ef4444;">🔥 Recent Failed Calls</h3>
+        <% @failed_calls.first(20).each do |call| %>
+          <div class="tool-call failed">
+            <div class="tool-name failed">
+              <%= call.tool_name %> <span style="color: #ef4444;">❌ FAILED</span>
+            </div>
+            <div class="tool-meta">
+              <%= call.created_at.strftime("%Y-%m-%d %H:%M:%S") %> 
+              <% if call.ip_address %> • IP: <%= call.ip_address %><% end %>
+            </div>
+            <% if call.purl %>
+              <div class="tool-purl"><%= call.purl %></div>
+            <% end %>
+            <div class="error-message">
+              <strong><%= call.error_type %>:</strong> <%= call.error_message %>
+            </div>
+            <div class="tool-args">
+              <details>
+                <summary>Arguments (<%= call.arguments.length %> chars)</summary>
+                <pre><%= JSON.pretty_generate(JSON.parse(call.arguments)) rescue call.arguments %></pre>
+              </details>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
 
     <div style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9em;">
       Showing last 1000 tool calls • <a href="/mcp/admin.json">JSON API</a> • <a href="/mcp/health">Health Check</a>
