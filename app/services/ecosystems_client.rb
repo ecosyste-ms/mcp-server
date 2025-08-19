@@ -92,6 +92,166 @@ class EcosystemsClient
     make_request(url)
   end
 
+  def repository_scorecard(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "#{REPOS_BASE_URL}/hosts/#{host}/repositories/#{encoded_owner}%2F#{encoded_repo}/scorecard"
+    make_request(url)
+  end
+
+  def repository_readme(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "https://archives.ecosyste.ms/api/v1/repositories/#{host}/#{encoded_owner}/#{encoded_repo}/readme"
+    make_request(url)
+  end
+
+  def repository_files(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "https://archives.ecosyste.ms/api/v1/repositories/#{host}/#{encoded_owner}/#{encoded_repo}/files"
+    make_request(url)
+  end
+
+  def repository_tags(host, owner, repo, page: 1, per_page: 30)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "#{REPOS_BASE_URL}/hosts/#{host}/repositories/#{encoded_owner}%2F#{encoded_repo}/tags?page=#{page}&per_page=#{per_page}"
+    make_request(url)
+  end
+
+  def repository_activity(repo_url)
+    # This method seems to take a full repo URL rather than host/owner/repo
+    # Need to implement based on the actual API endpoint
+    if repo_url.include?("github.com")
+      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
+      return nil if parts.length < 2
+      owner, repo = parts[0], parts[1]
+      encoded_owner = CGI.escape(owner)
+      encoded_repo = CGI.escape(repo)
+      url = "#{REPOS_BASE_URL}/hosts/GitHub/repositories/#{encoded_owner}%2F#{encoded_repo}"
+      repo_data = make_request(url)
+      # Return activity-related fields from the repo data
+      return repo_data if repo_data
+    end
+    nil
+  end
+
+  def repository_changelog(host, owner, repo, version = nil)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    base_url = "https://archives.ecosyste.ms/api/v1/repositories/#{host}/#{encoded_owner}/#{encoded_repo}/changelog"
+    url = version ? "#{base_url}?version=#{version}" : base_url
+    make_request(url)
+  end
+
+  def repository_committers(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "#{COMMITS_BASE_URL}/hosts/#{host}/repositories/#{encoded_owner}%2F#{encoded_repo}/committers"
+    make_request(url)
+  end
+
+  def repository_past_year_activity(host, owner, repo)
+    encoded_owner = CGI.escape(owner)
+    encoded_repo = CGI.escape(repo)
+    url = "#{ISSUES_BASE_URL}/hosts/#{host}/repositories/#{encoded_owner}%2F#{encoded_repo}/activity"
+    make_request(url)
+  end
+
+  def package_versions(purl, page: 1, per_page: 30)
+    encoded_purl = CGI.escape(purl)
+    url = "#{PACKAGES_BASE_URL}/packages/lookup?purl=#{encoded_purl}/versions?page=#{page}&per_page=#{per_page}"
+    # This might need adjustment based on the actual API
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/versions?page=#{page}&per_page=#{per_page}"
+    make_request(url)
+  end
+
+  def dependent_packages(purl, page: 1)
+    encoded_purl = CGI.escape(purl)
+    url = "#{PACKAGES_BASE_URL}/packages/lookup?purl=#{encoded_purl}/dependents?page=#{page}"
+    # This might need adjustment based on the actual API
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/dependents?page=#{page}"
+    make_request(url)
+  end
+
+  def related_packages(purl, page: 1)
+    encoded_purl = CGI.escape(purl)
+    url = "#{PACKAGES_BASE_URL}/packages/lookup?purl=#{encoded_purl}/related?page=#{page}"
+    # This might need adjustment based on the actual API
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/related?page=#{page}"
+    make_request(url)
+  end
+
+  def package_maintainers(purl)
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/maintainers"
+    make_request(url)
+  end
+
+  def version_dependencies(package_purl, version)
+    package_info = lookup_by_purl(package_purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/versions/#{version}/dependencies"
+    make_request(url)
+  end
+
+  def package_version_numbers(purl)
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    encoded_name = CGI.escape(name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/packages/#{encoded_name}/versions"
+    versions_response = make_request(url)
+    
+    # Extract just the version numbers
+    if versions_response && versions_response.is_a?(Array)
+      versions_response.map { |v| v["number"] }.compact
+    else
+      []
+    end
+  end
+
+  def package_dependencies(purl)
+    package_info = lookup_by_purl(purl)
+    return [] unless package_info
+    
+    # Get the latest version dependencies
+    latest_version = package_info["latest_release_number"]
+    return [] unless latest_version
+    
+    version_dependencies(purl, latest_version)
+  end
+
   def repository_manifests(host, owner, repo)
     encoded_owner = CGI.escape(owner)
     encoded_repo = CGI.escape(repo)
