@@ -4,17 +4,15 @@ class McpController < ApplicationController
   def handle
     begin
       request_body = request.body.read
-      Rails.logger.info "MCP Request: #{request_body}"
       
       mcp_server = McpServer.new
-      response_data = mcp_server.handle_request(request_body, user_agent: request.headers['User-Agent'], request_id: request.request_id, ip_address: request.remote_ip)
-      Rails.logger.info "MCP Response: #{response_data}"
-      
+      response_data = mcp_server.handle_request(request_body, user_agent: request.headers["User-Agent"], request_id: request.request_id, ip_address: request.remote_ip)
+
       render json: response_data
     rescue => e
       Rails.logger.error "MCP Error: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      
+
       render json: {
         jsonrpc: "2.0",
         error: {
@@ -29,7 +27,7 @@ class McpController < ApplicationController
   def health
     mcp_server = McpServer.new
     tools = mcp_server.tools_list
-    
+
     render json: {
       status: "healthy",
       server: "Ecosyste.ms MCP Server",
@@ -50,7 +48,7 @@ class McpController < ApplicationController
       calls_today: ToolCall.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count,
       calls_this_week: ToolCall.where(created_at: 1.week.ago.beginning_of_day..Time.current).count
     }
-    
+
     respond_to do |format|
       format.html
       format.json { render json: { tool_calls: @tool_calls, stats: @stats } }

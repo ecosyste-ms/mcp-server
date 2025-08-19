@@ -1,4 +1,4 @@
-require 'purl'
+require "purl"
 
 class PackageInfoService
   def extract_name(response)
@@ -7,7 +7,7 @@ class PackageInfoService
 
   def extract_author(response)
     authors = []
-    
+
     # Check maintainers field
     maintainers = response["maintainers"]
     if maintainers&.any?
@@ -15,7 +15,7 @@ class PackageInfoService
         name = maintainer["name"]
         email = maintainer["email"]
         login = maintainer["login"]
-        
+
         if name && email
           "#{name} <#{email}>"
         elsif name
@@ -26,16 +26,16 @@ class PackageInfoService
           email
         end
       end.compact
-      
+
       authors.concat(maintainer_names)
     end
-    
+
     # Check repository owner field
     owner = response.dig("owner", "name") || response.dig("owner", "login")
     if owner && !authors.include?(owner)
       authors << owner
     end
-    
+
     # Return formatted authors or fallback to "Unknown"
     if authors.any?
       authors.join(", ")
@@ -77,19 +77,15 @@ class PackageInfoService
     name = response["name"]
     ecosystem = response["ecosystem"]
     version = response.dig("latest_stable_release", "number")
-    
+
     return nil unless name && ecosystem
 
     # Map ecosystem names to purl types
     purl_type = case ecosystem.downcase
-                when "pypi" then "pypi"
-                when "npm", "npmjs" then "npm"
-                when "cargo" then "cargo"
-                when "rubygems" then "gem"
-                when "maven" then "maven"
-                when "nuget" then "nuget"
-                else ecosystem.downcase
-                end
+    when "npm", "npmjs" then "npm"
+    when "rubygems" then "gem"
+    else ecosystem.downcase
+    end
 
     # Use the purl gem to properly construct the PURL
     purl_obj = Purl::PackageURL.new(
@@ -97,7 +93,7 @@ class PackageInfoService
       name: name,
       version: version
     )
-    
+
     purl_obj.to_s
   end
 end

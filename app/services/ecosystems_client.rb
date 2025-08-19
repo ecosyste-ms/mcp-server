@@ -52,6 +52,17 @@ class EcosystemsClient
     make_request(url)
   end
 
+  def version_info(package_purl, version)
+    # First lookup the package to get registry and name
+    package_info = lookup_by_purl(package_purl)
+    return nil unless package_info
+    
+    registry = package_info["registry"]
+    name = package_info["name"]
+    
+    lookup_package_version(registry, name, version)
+  end
+
   def vulnerabilities(ecosystem, package_name)
     encoded_name = CGI.escape(package_name)
     url = "https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{encoded_name}"

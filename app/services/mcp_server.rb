@@ -51,41 +51,7 @@ class McpServer
   end
 
   def tools_list
-    [
-      {
-        name: "get_package_basic_info",
-        description: "Get basic package information (id, name, ecosystem, description, homepage, licenses)",
-        inputSchema: {
-          type: "object",
-          properties: {
-            purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
-          },
-          required: ["purl"]
-        }
-      },
-      {
-        name: "get_vulnerability_list",
-        description: "Get detailed list of all vulnerabilities",
-        inputSchema: {
-          type: "object",
-          properties: {
-            purl: { type: "string", description: "Package URL (e.g., pkg:pypi/numpy)" }
-          },
-          required: ["purl"]
-        }
-      },
-      {
-        name: "get_repo_basic_info",
-        description: "Get repository basic info (id, full_name, owner, description, archived, fork)",
-        inputSchema: {
-          type: "object",
-          properties: {
-            repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" }
-          },
-          required: ["repo_url"]
-        }
-      }
-    ]
+    available_tool_classes.map(&:to_mcp_tool)
   end
 
   def handle_initialize(request)
@@ -140,16 +106,13 @@ class McpServer
       ip_address: ip_address
     )
     
-    result = case tool_name
-             when "get_package_basic_info"
-               get_package_basic_info(arguments)
-             when "get_vulnerability_list"
-               get_vulnerability_list(arguments)
-             when "get_repo_basic_info"
-               get_repo_basic_info(arguments)
-             else
-               { error: "Unknown tool: #{tool_name}" }
-             end
+    tool_class = find_tool_class(tool_name)
+    if tool_class
+      tool_instance = tool_class.new(@client)
+      result = tool_instance.call(arguments)
+    else
+      result = { error: "Unknown tool: #{tool_name}" }
+    end
 
     {
       jsonrpc: "2.0",
@@ -165,81 +128,15 @@ class McpServer
     }
   end
 
-  def get_package_basic_info(args)
-    response = @client.lookup_by_purl(args[:purl] || args["purl"])
-    return { error: "Package not found" } unless response
-    
-    {
-      id: response["id"],
-      name: response["name"],
-      ecosystem: response["ecosystem"],
-      description: response["description"],
-      homepage: response["homepage"],
-      licenses: response["licenses"]
-    }
+  private
+
+  def available_tool_classes
+    # Dynamically find all tool classes that inherit from BaseTool
+    Rails.application.eager_load! unless Rails.application.config.cache_classes
+    BaseTool.descendants
   end
 
-  def get_vulnerability_list(args)
-    purl_string = args[:purl] || args["purl"]
-    return { error: "PURL required" } unless purl_string
-    
-    vulnerabilities = @client.vulnerabilities_by_purl(purl_string)
-    
-    if vulnerabilities && vulnerabilities.any?
-      {
-        vulnerabilities: vulnerabilities.map do |vuln|
-          {
-            uuid: vuln["uuid"],
-            title: vuln["title"],
-            severity: vuln["severity"],
-            cvss_score: vuln["cvss_score"],
-            published_at: vuln["published_at"],
-            url: vuln["url"],
-            identifiers: vuln["identifiers"]
-          }
-        end
-      }
-    else
-      { vulnerabilities: [] }
-    end
-  end
-
-  def get_repo_basic_info(args)
-    repo_url = args[:repo_url] || args["repo_url"]
-    return { error: "Repository URL required" } unless repo_url
-    
-    # Check if this looks like a PURL (starts with pkg:)
-    if repo_url.start_with?("pkg:")
-      # Look up the package to get repository_url
-      package_response = @client.lookup_by_purl(repo_url)
-      return { error: "Package not found" } unless package_response
-      
-      repository_url = package_response["repository_url"]
-      return { error: "No repository URL found for this package" } unless repository_url
-      
-      repo_url = repository_url
-    end
-    
-    # Parse GitHub URL to get owner/repo
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      repo_data = @client.repository_info("GitHub", owner, repo)
-      return { error: "Repository not found" } unless repo_data
-      
-      {
-        id: repo_data["id"],
-        full_name: repo_data["full_name"],
-        owner: repo_data["owner"],
-        description: repo_data["description"],
-        archived: repo_data["archived"],
-        fork: repo_data["fork"]
-      }
-    else
-      { error: "Only GitHub repositories supported currently" }
-    end
+  def find_tool_class(tool_name)
+    available_tool_classes.find { |klass| klass.tool_name == tool_name }
   end
 end
