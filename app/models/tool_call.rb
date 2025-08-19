@@ -3,10 +3,12 @@ class ToolCall < ApplicationRecord
   validates :created_at, presence: true
 
   def self.log_call(tool_name:, arguments: {}, purl: nil, user_agent: nil, request_id: nil, ip_address: nil)
+    # Extract purl from arguments if not explicitly provided
+    extracted_purl = purl || arguments[:purl] || arguments["purl"] || arguments[:repo_url] || arguments["repo_url"]
     create!(
       tool_name: tool_name,
       arguments: arguments.to_json,
-      purl: purl,
+      purl: extracted_purl,
       user_agent: user_agent,
       request_id: request_id,
       ip_address: ip_address,
