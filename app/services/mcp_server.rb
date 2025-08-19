@@ -1,7 +1,7 @@
 require 'json'
 
 # Simple MCP server implementation without fast-mcp dependency issues
-class SimpleMcpServer
+class McpServer
   def initialize
     @client = EcosystemsClient.new
     @service = PackageInfoService.new

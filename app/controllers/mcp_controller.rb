@@ -6,7 +6,7 @@ class McpController < ApplicationController
       request_body = request.body.read
       Rails.logger.info "MCP Request: #{request_body}"
       
-      mcp_server = SimpleMcpServer.new
+      mcp_server = McpServer.new
       response_data = mcp_server.handle_request(request_body, user_agent: request.headers['User-Agent'], request_id: request.request_id, ip_address: request.remote_ip)
       Rails.logger.info "MCP Response: #{response_data}"
       
@@ -27,7 +27,7 @@ class McpController < ApplicationController
   end
 
   def health
-    mcp_server = SimpleMcpServer.new
+    mcp_server = McpServer.new
     tools = mcp_server.tools_list
     
     render json: {
