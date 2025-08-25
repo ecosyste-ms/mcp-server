@@ -264,6 +264,23 @@ class EcosystemsClient
     make_request(url)
   end
 
+  def packages_by_repository_url(repository_url)
+    encoded_url = CGI.escape(repository_url)
+    url = "#{PACKAGES_BASE_URL}/packages/lookup?repository_url=#{encoded_url}"
+    make_request(url)
+  end
+
+  def maintainer_packages(registry, maintainer_name)
+    encoded_maintainer = CGI.escape(maintainer_name)
+    url = "#{PACKAGES_BASE_URL}/registries/#{registry}/maintainers/#{encoded_maintainer}/packages"
+    make_request(url)
+  end
+
+  def registry_list
+    url = "#{PACKAGES_BASE_URL}/registries"
+    make_request(url)
+  end
+
   private
 
   def make_request(url, max_retries: 3)

@@ -13,6 +13,9 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_package_versions_info`** - Get version count and latest release info
 - **`get_package_keywords`** - Get package keywords and categories
 - **`get_package_urls`** - Get ecosyste.ms URLs and related links (repository_url, homepage, icon_url)
+- **`get_package_metrics`** - Get package metrics including downloads, dependents, stars, forks, rankings, maintainers, and repository stats
+- **`get_funding_links`** - Get funding links for a package
+- **`get_latest_version`** - Get latest version information for a package
 
 ### Version-Specific Tools
 - **`get_version_info`** - Get specific version metadata (published_at, downloads, author, checksum, size)
@@ -23,6 +26,7 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_related_packages`** - Get packages related to this package (dependencies, dependents, similar packages) with pagination support
 - **`get_dependent_packages`** - Get packages that depend on this package with pagination support
 - **`get_package_maintainers`** - Get package maintainers list with detailed information
+- **`get_maintainer_packages`** - Get packages maintained by a specific maintainer
 - **`get_version_urls`** - Get ecosyste.ms URLs for specific version analysis and registry links
 
 ### Repository Analysis Tools
@@ -45,6 +49,7 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_repo_owner`** - Get repository owner information using ecosyste.ms repos API
 - **`get_repo_scorecard`** - Get repository security scorecard using ecosyste.ms repos API
 - **`get_repo_urls`** - Get ecosyste.ms URLs for repository analysis across all platforms (repos, issues, commits)
+- **`get_repo_package_names`** - Get package names associated with a repository
 
 ### Issue Tracking Tools
 - **`get_issue_counts`** - Get issue and PR counts (total, closed)
@@ -62,6 +67,9 @@ A Model Control Protocol (MCP) server providing granular, field-level access to 
 - **`get_vulnerability_list`** - Get detailed list of all vulnerabilities with CVE details
 - **`get_vulnerability_counts_by_severity`** - Get vulnerability counts grouped by severity (critical, high, moderate, low)
 - **`get_latest_vulnerability_date`** - Get the date of the most recent vulnerability
+
+### Registry Tools
+- **`get_registry_list`** - Get list of all available package registries
 
 ---
 
@@ -247,7 +255,7 @@ curl -X POST http://localhost:3000/mcp \
 ## 🏆 **KEY FEATURES**
 
 ### **Granular Data Access**
-- **43 MCP Tools** providing raw, field-level access to ecosyste.ms data
+- **49 MCP Tools** providing raw, field-level access to ecosyste.ms data
 - **No Opinions** - Tools return raw API fields, users decide what data means
 - **Composable** - Mix and match tools for custom analysis workflows
 - **Multi-Ecosystem Support** - PyPI, npm, Cargo, RubyGems, Maven, NuGet via PURL
