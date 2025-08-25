@@ -22,7 +22,16 @@ class GetRepoActivityTool < BaseTool
     repo_url = extract_repo_url(arguments)
     return { error: "Repository URL required" } unless repo_url
 
-    activity = @client.repository_activity(repo_url)
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+    
+    # Use the direct repository API URL from the lookup response
+    repository_api_url = repo_lookup["repository_url"]
+    return { error: "Repository API URL not available" } unless repository_api_url
+    
+    # Make API call using the direct URL
+    activity = @client.fetch_external_api(repository_api_url)
     return { error: "Repository not found" } unless activity
     
     {

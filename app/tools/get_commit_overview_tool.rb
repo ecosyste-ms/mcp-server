@@ -22,24 +22,27 @@ class GetCommitOverviewTool < BaseTool
     repo_url = extract_repo_url(arguments)
     return { error: "Repository URL required" } unless repo_url
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      repo_data = @client.repository_info("GitHub", owner, repo)
-      return { error: "Repository not found" } unless repo_data
-      
-      {
-        id: repo_data["id"],
-        full_name: repo_data["full_name"],
-        default_branch: repo_data["default_branch"],
-        total_commits: repo_data["total_commits"],
-        last_commit_at: repo_data["last_commit_at"]
-      }
-    else
-      { error: "Only GitHub repositories supported currently" }
-    end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Extract host info for subsequent calls
+    host = repo_lookup["host"]["name"]  # e.g. "GitHub"
+    full_name = repo_lookup["full_name"]  # e.g. "owner/repo"
+    owner, repo = full_name.split("/", 2) if full_name
+
+    return { error: "Invalid repository format" } unless owner && repo
+
+    # Make API call using lookup data
+    repo_data = @client.repository_info(host, owner, repo)
+    return { error: "Repository not found" } unless repo_data
+    
+    {
+      id: repo_data["id"],
+      full_name: repo_data["full_name"],
+      default_branch: repo_data["default_branch"],
+      total_commits: repo_data["total_commits"],
+      last_commit_at: repo_data["last_commit_at"]
+    }
   end
 end

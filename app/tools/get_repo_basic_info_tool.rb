@@ -34,26 +34,25 @@ class GetRepoBasicInfoTool < BaseTool
       repo_url = repository_url
     end
     
-    # Parse GitHub URL to get owner/repo
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      repo_data = @client.repository_info("GitHub", owner, repo)
-      return { error: "Repository not found" } unless repo_data
-      
-      {
-        id: repo_data["id"],
-        full_name: repo_data["full_name"],
-        owner: repo_data["owner"],
-        description: repo_data["description"],
-        archived: repo_data["archived"],
-        fork: repo_data["fork"]
-      }
-    else
-      { error: "Only GitHub repositories supported currently" }
-    end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+    
+    # Use the direct repository API URL from the lookup response
+    repository_api_url = repo_lookup["repository_url"]
+    return { error: "Repository API URL not available" } unless repository_api_url
+    
+    # Make API call using the direct URL
+    repo_data = @client.fetch_external_api(repository_api_url)
+    return { error: "Repository not found" } unless repo_data
+    
+    {
+      id: repo_data["id"],
+      full_name: repo_data["full_name"],
+      owner: repo_data["owner"],
+      description: repo_data["description"],
+      archived: repo_data["archived"],
+      fork: repo_data["fork"]
+    }
   end
 end

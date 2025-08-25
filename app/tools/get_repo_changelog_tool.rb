@@ -24,21 +24,33 @@ class GetRepoChangelogTool < BaseTool
     version = arguments[:version] || arguments["version"]
     return { error: "Repository URL required" } unless repo_url
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      changelog = @client.repository_changelog("GitHub", owner, repo, version)
-      
-      {
-        changelog: changelog,
-        version: version,
-        exists: !changelog.nil?
-      }
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Try to use the direct changelog API URL from the lookup response if available
+    changelog_api_url = repo_lookup["changelog_url"]
+    
+    if changelog_api_url
+      # Add version parameter if provided
+      changelog_url_with_params = version ? "#{changelog_api_url}?version=#{version}" : changelog_api_url
+      # Make API call using the direct URL
+      changelog = @client.fetch_external_api(changelog_url_with_params)
     else
-      { error: "Only GitHub repositories supported currently" }
+      # Fall back to the original pattern if no direct URL is available
+      host = repo_lookup["host"]["name"]
+      full_name = repo_lookup["full_name"]
+      owner, repo = full_name.split("/", 2) if full_name
+      
+      return { error: "Invalid repository format" } unless owner && repo
+      
+      changelog = @client.repository_changelog(host, owner, repo, version)
     end
+    
+    {
+      changelog: changelog,
+      version: version,
+      exists: !changelog.nil?
+    }
   end
 end

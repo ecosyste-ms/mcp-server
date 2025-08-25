@@ -22,30 +22,27 @@ class GetRepoOwnerTool < BaseTool
     repo_url = extract_repo_url(arguments)
     return { error: "Repository URL required" } unless repo_url
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      repo_data = @client.repository_info("GitHub", owner, repo)
-      return { error: "Repository not found" } unless repo_data
-      
-      owner_data = repo_data["owner"]
-      return { error: "Owner information not found" } unless owner_data
-      
-      {
-        login: owner_data["login"],
-        name: owner_data["name"],
-        type: owner_data["type"],
-        avatar_url: owner_data["avatar_url"],
-        html_url: owner_data["html_url"],
-        public_repos: owner_data["public_repos"],
-        followers: owner_data["followers"],
-        following: owner_data["following"]
-      }
-    else
-      { error: "Only GitHub repositories supported currently" }
-    end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Use the direct owner API URL from the lookup response
+    owner_api_url = repo_lookup["owner_url"]
+    return { error: "Owner API URL not available" } unless owner_api_url
+
+    # Make API call using the direct URL
+    owner_data = @client.fetch_external_api(owner_api_url)
+    return { error: "Owner information not found" } unless owner_data
+    
+    {
+      login: owner_data["login"],
+      name: owner_data["name"],
+      type: owner_data["type"],
+      avatar_url: owner_data["avatar_url"],
+      html_url: owner_data["html_url"],
+      public_repos: owner_data["public_repos"],
+      followers: owner_data["followers"],
+      following: owner_data["following"]
+    }
   end
 end

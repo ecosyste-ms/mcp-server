@@ -1,3 +1,5 @@
+require 'cgi'
+
 class GetRepoFileContentsTool < BaseTool
   def self.description
     "Get contents of a specific file from a repository using archives API"
@@ -25,21 +27,35 @@ class GetRepoFileContentsTool < BaseTool
     return { error: "Repository URL required" } unless repo_url
     return { error: "File path required" } unless file_path
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      content = @client.repository_file_contents("GitHub", owner, repo, file_path)
-      
-      {
-        file_path: file_path,
-        content: content,
-        exists: !content.nil?
-      }
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Try to use file contents URL if available, or construct it from files URL
+    files_base_url = repo_lookup["files_url"]
+    if files_base_url
+      # Construct file content URL by appending the file path
+      file_contents_url = "#{files_base_url}/#{file_path}"
+      content = @client.fetch_external_api(file_contents_url)
     else
-      { error: "Only GitHub repositories supported currently" }
+      # Fall back to the original pattern if no direct URL is available
+      host = repo_lookup["host"]["name"]
+      full_name = repo_lookup["full_name"]
+      owner, repo = full_name.split("/", 2) if full_name
+      
+      return { error: "Invalid repository format" } unless owner && repo
+      
+      # Construct the archives API URL manually
+      encoded_owner = CGI.escape(owner)
+      encoded_repo = CGI.escape(repo)
+      file_contents_url = "https://archives.ecosyste.ms/api/v1/repositories/#{host}/#{encoded_owner}/#{encoded_repo}/files/#{file_path}"
+      content = @client.fetch_external_api(file_contents_url)
     end
+    
+    {
+      file_path: file_path,
+      content: content,
+      exists: !content.nil?
+    }
   end
 end

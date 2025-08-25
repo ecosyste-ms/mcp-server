@@ -22,26 +22,26 @@ class GetRepoScorecardTool < BaseTool
     repo_url = extract_repo_url(arguments)
     return { error: "Repository URL required" } unless repo_url
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      scorecard = @client.repository_scorecard("GitHub", owner, repo)
-      
-      if scorecard
-        {
-          overall_score: scorecard["overall_score"],
-          checks: scorecard["checks"] || [],
-          date: scorecard["date"],
-          repo: scorecard["repo"]
-        }
-      else
-        { error: "Scorecard not available for this repository" }
-      end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Use the direct scorecard API URL from the lookup response
+    scorecard_api_url = repo_lookup["scorecard_url"]
+    return { error: "Scorecard API URL not available" } unless scorecard_api_url
+
+    # Make API call using the direct URL
+    scorecard = @client.fetch_external_api(scorecard_api_url)
+    
+    if scorecard
+      {
+        overall_score: scorecard["overall_score"],
+        checks: scorecard["checks"] || [],
+        date: scorecard["date"],
+        repo: scorecard["repo"]
+      }
     else
-      { error: "Only GitHub repositories supported currently" }
+      { error: "Scorecard not available for this repository" }
     end
   end
 end

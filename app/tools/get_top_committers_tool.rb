@@ -25,31 +25,34 @@ class GetTopCommittersTool < BaseTool
 
     limit = arguments[:limit] || arguments["limit"] || 10
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      top_committers = @client.repository_top_committers("GitHub", owner, repo, limit: limit)
-      
-      if top_committers && top_committers.any?
-        {
-          top_committers: top_committers.map do |committer|
-            {
-              login: committer["login"],
-              name: committer["name"],
-              commits: committer["commits"],
-              percentage: committer["percentage"]
-            }
-          end,
-          limit: limit
-        }
-      else
-        { top_committers: [], limit: limit }
-      end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Extract host info for subsequent calls
+    host = repo_lookup["host"]["name"]  # e.g. "GitHub"
+    full_name = repo_lookup["full_name"]  # e.g. "owner/repo"
+    owner, repo = full_name.split("/", 2) if full_name
+
+    return { error: "Invalid repository format" } unless owner && repo
+
+    # Make API call using lookup data
+    top_committers = @client.repository_top_committers(host, owner, repo, limit: limit)
+    
+    if top_committers && top_committers.any?
+      {
+        top_committers: top_committers.map do |committer|
+          {
+            login: committer["login"],
+            name: committer["name"],
+            commits: committer["commits"],
+            percentage: committer["percentage"]
+          }
+        end,
+        limit: limit
+      }
     else
-      { error: "Only GitHub repositories supported currently" }
+      { top_committers: [], limit: limit }
     end
   end
 end

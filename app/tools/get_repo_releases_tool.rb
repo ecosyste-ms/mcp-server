@@ -27,33 +27,36 @@ class GetRepoReleasesTool < BaseTool
     page = arguments[:page] || arguments["page"] || 1
     per_page = arguments[:per_page] || arguments["per_page"] || 30
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      releases = @client.repository_releases("GitHub", owner, repo, page: page, per_page: per_page)
-      
-      if releases && releases.any?
-        {
-          releases: releases.map do |release|
-            {
-              tag_name: release["tag_name"],
-              name: release["name"],
-              body: release["body"],
-              draft: release["draft"],
-              prerelease: release["prerelease"],
-              published_at: release["published_at"]
-            }
-          end,
-          pagination: { page: page, per_page: per_page }
-        }
-      else
-        { releases: [], pagination: { page: page, per_page: per_page } }
-      end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Use the direct releases API URL from the lookup response
+    releases_api_url = repo_lookup["releases_url"]
+    return { error: "Releases API URL not available" } unless releases_api_url
+    
+    # Add pagination parameters to the URL
+    releases_url_with_params = "#{releases_api_url}?page=#{page}&per_page=#{per_page}"
+
+    # Make API call using the direct URL
+    releases = @client.fetch_external_api(releases_url_with_params)
+    
+    if releases && releases.any?
+      {
+        releases: releases.map do |release|
+          {
+            tag_name: release["tag_name"],
+            name: release["name"],
+            body: release["body"],
+            draft: release["draft"],
+            prerelease: release["prerelease"],
+            published_at: release["published_at"]
+          }
+        end,
+        pagination: { page: page, per_page: per_page }
+      }
     else
-      { error: "Only GitHub repositories supported currently" }
+      { releases: [], pagination: { page: page, per_page: per_page } }
     end
   end
 end

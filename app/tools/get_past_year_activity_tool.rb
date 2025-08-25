@@ -22,24 +22,27 @@ class GetPastYearActivityTool < BaseTool
     repo_url = extract_repo_url(arguments)
     return { error: "Repository URL required" } unless repo_url
 
-    if repo_url.include?("github.com")
-      parts = repo_url.gsub("https://", "").gsub("http://", "").gsub("github.com/", "").split("/")
-      return { error: "Invalid GitHub URL" } if parts.length < 2
-      
-      owner, repo = parts[0], parts[1]
-      
-      activity = @client.repository_past_year_activity("GitHub", owner, repo)
-      return { error: "Activity data not found" } unless activity
-      
-      {
-        issues_opened_last_year: activity["issues_opened_last_year"],
-        issues_closed_last_year: activity["issues_closed_last_year"],
-        pull_requests_opened_last_year: activity["pull_requests_opened_last_year"],
-        pull_requests_merged_last_year: activity["pull_requests_merged_last_year"],
-        commits_last_year: activity["commits_last_year"]
-      }
-    else
-      { error: "Only GitHub repositories supported currently" }
-    end
+    # Look up repository metadata first
+    repo_lookup = @client.repository_lookup(repo_url)
+    return { error: "Repository not found" } unless repo_lookup
+
+    # Extract host info for subsequent calls
+    host = repo_lookup["host"]["name"]  # e.g. "GitHub"
+    full_name = repo_lookup["full_name"]  # e.g. "owner/repo"
+    owner, repo = full_name.split("/", 2) if full_name
+
+    return { error: "Invalid repository format" } unless owner && repo
+
+    # Make API call using lookup data
+    activity = @client.repository_past_year_activity(host, owner, repo)
+    return { error: "Activity data not found" } unless activity
+    
+    {
+      issues_opened_last_year: activity["issues_opened_last_year"],
+      issues_closed_last_year: activity["issues_closed_last_year"],
+      pull_requests_opened_last_year: activity["pull_requests_opened_last_year"],
+      pull_requests_merged_last_year: activity["pull_requests_merged_last_year"],
+      commits_last_year: activity["commits_last_year"]
+    }
   end
 end

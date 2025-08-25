@@ -281,6 +281,48 @@ class EcosystemsClient
     make_request(url)
   end
 
+  def repository_lookup(repository_url)
+    # Ensure URL has proper protocol
+    repository_url = "https://#{repository_url}" unless repository_url.start_with?("http")
+    encoded_url = CGI.escape(repository_url)
+    url = "#{REPOS_BASE_URL}/repositories/lookup?url=#{encoded_url}"
+    make_request(url)
+  end
+
+  def repository_maintainers(host, owner, repo)
+    # For now, this returns the same as repository_committers
+    # In the future, this could filter for maintainers specifically
+    repository_committers(host, owner, repo)
+  end
+
+  def repository_top_committers(host, owner, repo, limit: 10)
+    all_committers = repository_committers(host, owner, repo)
+    return [] unless all_committers && all_committers.is_a?(Array)
+    
+    # Sort by commit count and take the top N
+    sorted_committers = all_committers.sort_by { |c| -(c["commits"] || 0) }
+    sorted_committers.first(limit)
+  end
+
+  def repository_contributor_stats(host, owner, repo)
+    # This should use the contributor counts from the repository_info or a specific endpoint
+    # For now, return basic structure based on repository_info
+    repo_info = repository_info(host, owner, repo)
+    return nil unless repo_info
+    
+    {
+      contributors_count: repo_info["contributors_count"],
+      stargazers_count: repo_info["stargazers_count"],
+      forks_count: repo_info["forks_count"],
+      open_issues_count: repo_info["open_issues_count"]
+    }
+  end
+
+  def repository_issue_stats(host, owner, repo)
+    # This should use repository_issues method
+    repository_issues(host, owner, repo)
+  end
+
   private
 
   def make_request(url, max_retries: 3)

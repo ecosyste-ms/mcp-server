@@ -41,4 +41,31 @@ class BaseTool
   def extract_repo_url(args)
     args[:repo_url] || args["repo_url"]
   end
+
+  def extract_version_from_purl(purl)
+    # Extract version from PURL format: pkg:type/namespace/name@version
+    return nil unless purl&.include?('@')
+    purl.split('@').last
+  end
+
+  def version_affected_by_vulnerability?(vulnerability, target_version, ecosystem)
+    return true unless target_version # If no version specified, show all vulnerabilities
+    
+    # Find the package entry for the specified ecosystem
+    package_entry = vulnerability["packages"]&.find do |pkg|
+      pkg["ecosystem"]&.downcase == ecosystem.downcase
+    end
+    
+    return true unless package_entry # If no ecosystem match, include the vulnerability
+    
+    # Check if the target version is in the affected versions list
+    affected_versions = package_entry["affected_versions"]
+    if affected_versions&.is_a?(Array)
+      return affected_versions.include?(target_version)
+    end
+    
+    # If no specific affected versions list, assume it affects the version
+    # (This is a fallback - in practice, most vulnerabilities should have affected_versions)
+    true
+  end
 end
