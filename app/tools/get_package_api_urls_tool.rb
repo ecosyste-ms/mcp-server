@@ -26,9 +26,13 @@ class GetPackageApiUrlsTool < BaseTool
     return { error: "Package not found" } unless response
     
     # Extract registry and name for constructing API URLs
-    registry = response["registry"]
+    registry = response["registry"]["name"] if response["registry"].is_a?(Hash)
+    registry ||= response["registry"] if response["registry"].is_a?(String)
     name = response["name"]
     encoded_name = CGI.escape(name)
+    
+    # Extract version if present
+    version = extract_version_from_purl(purl_string)
     
     # Package-specific API URLs
     package_api_urls = {
@@ -39,6 +43,13 @@ class GetPackageApiUrlsTool < BaseTool
       package_dependents: "https://packages.ecosyste.ms/api/v1/registries/#{registry}/packages/#{encoded_name}/dependents",
       package_maintainers: "https://packages.ecosyste.ms/api/v1/registries/#{registry}/packages/#{encoded_name}/maintainers"
     }
+    
+    # Add version-specific URLs if version is provided
+    if version
+      encoded_version = CGI.escape(version)
+      package_api_urls[:version_details] = "https://packages.ecosyste.ms/api/v1/registries/#{registry}/packages/#{encoded_name}/versions/#{encoded_version}"
+      package_api_urls[:version_dependencies] = "https://packages.ecosyste.ms/api/v1/registries/#{registry}/packages/#{encoded_name}/versions/#{encoded_version}/dependencies"
+    end
     
     # Add vulnerability API URLs
     ecosystem = response["ecosystem"]
