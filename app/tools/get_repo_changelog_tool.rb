@@ -12,9 +12,10 @@ class GetRepoChangelogTool < BaseTool
       type: "object",
       properties: {
         repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
-        version: { type: "string", description: "Optional specific version to get changes for (e.g. '4.0.4')" }
+        version: { type: "string", description: "Optional specific version to get changes for (e.g. '4.0.4')" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["repo_url"]
+      required: ["repo_url", "context"]
     }
   end
 

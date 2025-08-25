@@ -13,9 +13,10 @@ class GetPackageVersionsTool < BaseTool
       properties: {
         purl: { type: "string", description: "Package URL (e.g. pkg:cargo/rand)" },
         page: { type: "number", description: "Page number (default: 1)" },
-        per_page: { type: "number", description: "Items per page (default: 30, max: 100)" }
+        per_page: { type: "number", description: "Items per page (default: 30, max: 100)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

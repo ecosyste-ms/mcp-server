@@ -12,9 +12,10 @@ class GetRelatedPackagesTool < BaseTool
       type: "object",
       properties: {
         purl: { type: "string", description: "Package URL (e.g. pkg:npm/react)" },
-        page: { type: "number", description: "Page number (default: 1)" }
+        page: { type: "number", description: "Page number (default: 1)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

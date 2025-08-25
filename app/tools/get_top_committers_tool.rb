@@ -12,9 +12,10 @@ class GetTopCommittersTool < BaseTool
       type: "object",
       properties: {
         repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
-        limit: { type: "number", description: "Number of top committers to return (default: 10)" }
+        limit: { type: "number", description: "Number of top committers to return (default: 10)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["repo_url"]
+      required: ["repo_url", "context"]
     }
   end
 

@@ -11,9 +11,10 @@ class GetVersionInfoTool < BaseTool
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL with version (e.g. pkg:pypi/numpy@1.24.0)" }
+        purl: { type: "string", description: "Package URL with version (e.g. pkg:pypi/numpy@1.24.0)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

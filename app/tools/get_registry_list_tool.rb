@@ -10,8 +10,10 @@ class GetRegistryListTool < BaseTool
   def self.input_schema
     {
       type: "object",
-      properties: {},
-      required: []
+      properties: {
+        context: { type: "string", description: "Context for why this tool is being used" }
+      },
+      required: ["context"]
     }
   end
 

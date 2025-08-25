@@ -11,9 +11,10 @@ class GetRepoScorecardTool < BaseTool
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" }
+        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g., pkg:pypi/numpy)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["repo_url"]
+      required: ["repo_url", "context"]
     }
   end
 

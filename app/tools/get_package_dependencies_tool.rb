@@ -11,9 +11,10 @@ class GetPackageDependenciesTool < BaseTool
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL without version (e.g. pkg:cargo/rand)" }
+        purl: { type: "string", description: "Package URL without version (e.g. pkg:cargo/rand)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

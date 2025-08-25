@@ -11,9 +11,10 @@ class GetPackageVersionNumbersTool < BaseTool
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/numpy)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:pypi/numpy)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

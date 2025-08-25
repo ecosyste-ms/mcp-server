@@ -11,9 +11,10 @@ class GetFundingLinksTool < BaseTool
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL (e.g. pkg:npm/express)" }
+        purl: { type: "string", description: "Package URL (e.g. pkg:npm/express)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 

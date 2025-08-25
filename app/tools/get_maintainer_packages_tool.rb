@@ -12,9 +12,10 @@ class GetMaintainerPackagesTool < BaseTool
       type: "object",
       properties: {
         registry: { type: "string", description: "Registry name (e.g. rubygems.org, npmjs.org)" },
-        maintainer: { type: "string", description: "Maintainer username" }
+        maintainer: { type: "string", description: "Maintainer username" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["registry", "maintainer"]
+      required: ["registry", "maintainer", "context"]
     }
   end
 

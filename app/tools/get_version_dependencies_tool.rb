@@ -11,9 +11,10 @@ class GetVersionDependenciesTool < BaseTool
     {
       type: "object",
       properties: {
-        purl: { type: "string", description: "Package URL with version (e.g. pkg:cargo/rand@0.9.2)" }
+        purl: { type: "string", description: "Package URL with version (e.g. pkg:cargo/rand@0.9.2)" },
+        context: { type: "string", description: "Context for why this tool is being used" }
       },
-      required: ["purl"]
+      required: ["purl", "context"]
     }
   end
 
