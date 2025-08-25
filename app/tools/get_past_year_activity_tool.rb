@@ -35,14 +35,24 @@ class GetPastYearActivityTool < BaseTool
 
     # Make API call using lookup data
     activity = @client.repository_past_year_activity(host, owner, repo)
-    return { error: "Activity data not found" } unless activity
     
-    {
-      issues_opened_last_year: activity["issues_opened_last_year"],
-      issues_closed_last_year: activity["issues_closed_last_year"],
-      pull_requests_opened_last_year: activity["pull_requests_opened_last_year"],
-      pull_requests_merged_last_year: activity["pull_requests_merged_last_year"],
-      commits_last_year: activity["commits_last_year"]
-    }
+    if activity
+      {
+        issues_opened_last_year: activity["issues_opened_last_year"],
+        issues_closed_last_year: activity["issues_closed_last_year"],
+        pull_requests_opened_last_year: activity["pull_requests_opened_last_year"],
+        pull_requests_merged_last_year: activity["pull_requests_merged_last_year"],
+        commits_last_year: activity["commits_last_year"]
+      }
+    else
+      {
+        issues_opened_last_year: nil,
+        issues_closed_last_year: nil,
+        pull_requests_opened_last_year: nil,
+        pull_requests_merged_last_year: nil,
+        commits_last_year: nil,
+        message: "No activity data available for this repository"
+      }
+    end
   end
 end
