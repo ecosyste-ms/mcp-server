@@ -255,7 +255,7 @@ curl -X POST http://localhost:3000/mcp \
 ## 🏆 **KEY FEATURES**
 
 ### **Granular Data Access**
-- **49 MCP Tools** providing raw, field-level access to ecosyste.ms data
+- **46 MCP Tools** providing raw, field-level access to ecosyste.ms data
 - **No Opinions** - Tools return raw API fields, users decide what data means
 - **Composable** - Mix and match tools for custom analysis workflows
 - **Multi-Ecosystem Support** - PyPI, npm, Cargo, RubyGems, Maven, NuGet via PURL
