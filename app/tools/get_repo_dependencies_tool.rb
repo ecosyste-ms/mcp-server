@@ -11,7 +11,7 @@ class GetRepoDependenciesTool < BaseTool
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g. github.com/octobox/octobox)" },
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/octobox/octobox) or PURL (e.g. pkg:pypi/numpy, pkg:github/octobox/octobox, pkg:git/example/repo)" },
         context: { type: "string", description: "Context for why this tool is being used" }
       },
       required: ["repo_url", "context"]

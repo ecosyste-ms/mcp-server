@@ -281,8 +281,18 @@ class EcosystemsClient
     make_request(url)
   end
 
-  def repository_lookup(repository_url)
-    # Ensure URL has proper protocol
+  def repository_lookup(repository_url_or_purl)
+    # Check if this is a PURL (starts with pkg:)
+    if repository_url_or_purl.start_with?("pkg:")
+      # For PURLs, use the repos API PURL lookup directly
+      encoded_purl = CGI.escape(repository_url_or_purl)
+      url = "#{REPOS_BASE_URL}/repositories/lookup?purl=#{encoded_purl}"
+      return make_request(url)
+    else
+      repository_url = repository_url_or_purl
+    end
+    
+    # For direct repository URLs, ensure URL has proper protocol
     repository_url = "https://#{repository_url}" unless repository_url.start_with?("http")
     encoded_url = CGI.escape(repository_url)
     url = "#{REPOS_BASE_URL}/repositories/lookup?url=#{encoded_url}"

@@ -11,7 +11,7 @@ class GetRepoReleasesTool < BaseTool
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy)" },
+        repo_url: { type: "string", description: "Repository URL (e.g., github.com/numpy/numpy) or PURL (e.g. pkg:pypi/numpy, pkg:github/octobox/octobox, pkg:git/example/repo)" },
         page: { type: "number", description: "Page number (default: 1)" },
         per_page: { type: "number", description: "Items per page (default: 30)" },
         context: { type: "string", description: "Context for why this tool is being used" }

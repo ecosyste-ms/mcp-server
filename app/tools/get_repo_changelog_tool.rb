@@ -11,7 +11,7 @@ class GetRepoChangelogTool < BaseTool
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy) or PURL (e.g. pkg:pypi/numpy, pkg:github/octobox/octobox, pkg:git/example/repo)" },
         version: { type: "string", description: "Optional specific version to get changes for (e.g. '4.0.4')" },
         context: { type: "string", description: "Context for why this tool is being used" }
       },

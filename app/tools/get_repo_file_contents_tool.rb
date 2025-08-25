@@ -13,7 +13,7 @@ class GetRepoFileContentsTool < BaseTool
     {
       type: "object",
       properties: {
-        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy)" },
+        repo_url: { type: "string", description: "Repository URL (e.g. github.com/numpy/numpy) or PURL (e.g. pkg:pypi/numpy, pkg:github/octobox/octobox, pkg:git/example/repo)" },
         file_path: { type: "string", description: "Path to file within repository (e.g. LICENSE, README.md)" },
         context: { type: "string", description: "Context for why this tool is being used" }
       },
