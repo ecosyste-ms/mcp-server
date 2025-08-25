@@ -24,7 +24,7 @@ class GetSupportedPurlTypesTool < BaseTool
     # Extract PURL types from registries
     registry_purl_types = []
     if registries && registries.is_a?(Array)
-      registry_purl_types = registries.map { |reg| reg["name"] }.compact.sort
+      registry_purl_types = registries.map { |reg| reg["purl_type"] }.compact.uniq.sort
     end
     
     # Add git-related PURL types that aren't in registries
