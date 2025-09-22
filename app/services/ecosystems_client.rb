@@ -348,7 +348,8 @@ class EcosystemsClient
         Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 30, read_timeout: 30) do |http|
           request = Net::HTTP::Get.new(uri)
           request['User-Agent'] = 'mcp.ecosyste.ms'
-          
+          request['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
+
           response = http.request(request)
           
           case response.code
