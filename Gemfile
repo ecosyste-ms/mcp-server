@@ -11,7 +11,7 @@ gem "puma", ">= 5.0"
 gem "purl"
 
 # Use PostgreSQL as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.6"
 
 
 group :development do
