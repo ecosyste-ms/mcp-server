@@ -13,6 +13,8 @@ gem "purl"
 # Use PostgreSQL as the database for Active Record
 gem "pg", "~> 1.6"
 
+gem "minitest", "< 6"
+
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
