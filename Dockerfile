@@ -25,9 +25,10 @@ RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get -yq dist-upgrad
  && gem install bundler foreman \
  && bundle config --global frozen 1 \
  && bundle config set without 'test' \
- && bundle install --jobs 2
+ && bundle install --jobs 2 \
+ && ln -sf $(find /usr/lib -name 'libjemalloc.so.2' -print -quit) /usr/local/lib/libjemalloc.so.2
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
 ENV RUBY_YJIT_ENABLE=1
 
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
