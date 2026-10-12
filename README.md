@@ -167,6 +167,65 @@ curl -X POST http://localhost:3000/mcp \
   -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "assess_importance", "arguments": {"purl": "pkg:pypi/numpy"}}}'
 ```
 
+## Hosting with Docker
+
+Run these commands from the repository root with Docker running. The image runs Rails and needs a PostgreSQL database. The example keeps database files in a named volume and binds the HTTP port to localhost.
+
+```bash
+docker build -t ecosystems-mcp .
+docker network create ecosystems-mcp
+docker volume create ecosystems-mcp-data
+
+export DATABASE_PASSWORD="$(openssl rand -hex 32)"
+export SECRET_KEY_BASE="$(openssl rand -hex 64)"
+
+docker run -d --name ecosystems-mcp-db \
+  --network ecosystems-mcp --restart unless-stopped \
+  -e POSTGRES_USER=mcp \
+  -e POSTGRES_PASSWORD="$DATABASE_PASSWORD" \
+  -e POSTGRES_DB=mcp_production \
+  -v ecosystems-mcp-data:/var/lib/postgresql/data \
+  postgres:17
+
+docker run -d --name ecosystems-mcp-app \
+  --network ecosystems-mcp --restart unless-stopped \
+  -p 127.0.0.1:3000:3000 \
+  -e RAILS_ENV=production \
+  -e SECRET_KEY_BASE \
+  -e DATABASE_HOST=ecosystems-mcp-db \
+  -e DATABASE_USERNAME=mcp \
+  -e DATABASE_PASSWORD \
+  ecosystems-mcp
+```
+
+Save the generated secrets securely before leaving the shell. Reuse them when recreating containers; changing `POSTGRES_PASSWORD` does not change the password in an existing database volume. The startup script waits for PostgreSQL, creates `mcp_production` if needed, and runs migrations before starting Rails on port 3000.
+
+For an existing PostgreSQL server, skip the database container and set `DATABASE_HOST`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD` to its connection details. Set `DATABASE_PORT` if it differs from 5432. The database user needs permission to create `mcp_production` if it does not exist, and to run migrations. To send an ecosyste.ms API key with upstream requests, export `ECOSYSTEMS_API_KEY` and add `-e ECOSYSTEMS_API_KEY` to the application command.
+
+Check startup logs and the HTTP endpoints:
+
+```bash
+docker logs -f ecosystems-mcp-app
+```
+
+Once Rails is listening, run these in another terminal:
+
+```bash
+curl --fail http://localhost:3000/mcp/health
+curl --fail http://localhost:3000/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+The health response should contain `"status":"healthy"`, and the JSON-RPC response should contain `result.tools`. Local clients can connect to `http://localhost:3000/mcp`. For remote hosting, put an HTTPS reverse proxy in front of port 3000 and use its `/mcp` URL. Production mode assumes TLS terminates at that proxy and sets secure cookies and HSTS headers. Restrict access at the proxy as needed, including `/mcp/admin`, which exposes tool-call logs without application authentication.
+
+To stop and start the containers without removing database files:
+
+```bash
+docker stop ecosystems-mcp-app ecosystems-mcp-db
+docker start ecosystems-mcp-db ecosystems-mcp-app
+```
+
 ## Example Prompts
 
 Once connected, try these:

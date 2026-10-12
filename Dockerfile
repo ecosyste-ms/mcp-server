@@ -14,6 +14,7 @@ COPY Gemfile Gemfile.lock $APP_ROOT/
 # * Install Ruby dependencies
 RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get -yq dist-upgrade && apt-get install -yq --no-install-recommends \
   curl \
+  netcat-openbsd \
   build-essential \
   libpq-dev \
   tzdata \
